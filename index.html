@@ -1,0 +1,96 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Wöchentlicher Fortschrittsbericht – Elektro Jungbauer</title>
+<link rel="stylesheet" href="style.css">
+<script src="script.js" defer></script>
+</head>
+
+<body>
+
+<div class="container">
+
+<h1>Wöchentlicher Fortschrittsbericht</h1>
+
+<div class="section-title">1. Allgemeine Angaben</div>
+
+<label>Projekt / Baustelle</label>
+<input type="text">
+
+<label>Datum</label>
+<input type="date">
+
+<label>Monteur / Team</label>
+<input type="text">
+
+<label>Woche / Zeitraum</label>
+<input type="text">
+
+
+<div class="section-title">2. Bautagesberichte</div>
+
+<label><input type="checkbox" class="checkbox"> Bautagesberichte abgegeben</label>
+<label><input type="checkbox" class="checkbox"> Fotos beigelegt</label>
+<label><input type="checkbox" class="checkbox"> Besonderheiten dokumentiert</label>
+
+
+<div class="section-title">3. Leistungsfortschritt</div>
+
+<label>Baustelleneinrichtung (%)</label><input type="number">
+<label>Zuleitung &amp; Zählerplätze (%)</label><input type="number">
+<label>Rohr- und Tragsysteme (%)</label><input type="number">
+<label>Kabel &amp; Leitungen (%)</label><input type="number">
+<label>Schalt- und Steckgeräte (%)</label><input type="number">
+<label>PV-Anlage (%)</label><input type="number">
+<label>Beleuchtungskörper (%)</label><input type="number">
+<label>Außenbeleuchtung (%)</label><input type="number">
+<label>Antennenanlage (%)</label><input type="number">
+<label>Sprechanlage (%)</label><input type="number">
+<label>Brandentrauchung (%)</label><input type="number">
+<label>Dokumentation / Inbetriebnahme (%)</label><input type="number">
+<label>Allgemeinkosten (%)</label><input type="number">
+<label>NSP Verteilung (%)</label><input type="number">
+<label>Erdung &amp; Blitzschutz (%)</label><input type="number">
+<label>Kommunikationsanlagen (%)</label><input type="number">
+<label>Demontagen &amp; Montagen (%)</label><input type="number">
+<label>Planung / Inbetriebnahme (%)</label><input type="number">
+<label>Tiefgarage (%)</label><input type="number">
+<label>Rohinstallation – Decke (%)</label><input type="number">
+<label>Rohinstallation – Wände (%)</label><input type="number">
+<label>Leuchten (%)</label><input type="number">
+<label>Kabel einziehen (%)</label><input type="number">
+<label>Gegensprechanlage (%)</label><input type="number">
+
+
+<div class="section-title">4. Regieaufwand / Materialbedarf</div>
+
+<label><input type="checkbox" class="checkbox"> Wartezeiten anderer Gewerke</label>
+<label><input type="checkbox" class="checkbox"> Zusatzarbeiten ohne Auftrag</label>
+<label><input type="checkbox" class="checkbox"> Unvorhergesehener Mehraufwand</label>
+
+<label>Beschreibung / Details</label>
+<textarea rows="8"></textarea>
+
+
+<div class="section-title">5. Weitere Rückmeldungen</div>
+
+<label>Probleme / Verzögerungen</label>
+<textarea rows="6"></textarea>
+
+<label>Koordination mit anderen Gewerken</label>
+<textarea rows="6"></textarea>
+
+
+<div class="section-title">6. Unterschrift Monteur</div>
+
+<label>Name / Kürzel</label>
+<input type="text">
+
+<button class="button-send" onclick="sendForm()">Speichern / Fertig</button>
+
+</div>
+
+</body>
+</html>
