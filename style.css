@@ -1,0 +1,80 @@
+body {
+    font-family: Arial, sans-serif;
+    margin: 0;
+    padding: 20px;
+    background: #f4f4f4;
+}
+
+.container {
+    max-width: 900px;
+    margin: 0 auto;
+    background: white;
+    padding: 20px 25px;
+    border-radius: 10px;
+    box-shadow: 0 0 12px rgba(0,0,0,0.15);
+}
+
+h1 {
+    text-align: center;
+    margin-bottom: 25px;
+}
+
+.logo {
+    width: 240px;
+    display: block;
+    margin: 0 auto 20px auto;
+}
+
+.section-title {
+    font-size: 22px;
+    font-weight: bold;
+    margin-top: 30px;
+    border-bottom: 2px solid #cc0000;
+    padding-bottom: 5px;
+}
+
+label {
+    font-weight: bold;
+    font-size: 18px;
+    display: block;
+    margin-top: 15px;
+}
+
+input[type="text"],
+input[type="date"],
+input[type="number"],
+textarea {
+    width: 100%;
+    font-size: 18px;
+    padding: 10px;
+    margin-top: 5px;
+    border-radius: 6px;
+    border: 1px solid #888;
+    box-sizing: border-box;
+}
+
+textarea {
+    resize: vertical;
+}
+
+.checkbox {
+    width: 26px;
+    height: 26px;
+    margin-right: 10px;
+}
+
+.button-send {
+    margin-top: 30px;
+    padding: 14px;
+    background: #cc0000;
+    color: white;
+    font-size: 20px;
+    border: none;
+    width: 100%;
+    border-radius: 8px;
+    cursor: pointer;
+}
+
+.button-send:hover {
+    background: #e00000;
+}
