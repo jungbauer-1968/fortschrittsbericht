@@ -11,7 +11,9 @@ async function sendForm() {
         koordination: document.getElementById("koordination").value
     };
 
-    await fetch("https://script.google.com/macros/s/AKfycbwNmQr8j3CqAmDW67FZnLiA2BtedtPYfiVSC2l_9wWVuT-QJK9-RAvAqRIGC-H1D_pg/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycb-yuPiCXLrZtnv50GTJpenSPeg3khsboHH5pJraq0g25Ch4J598RayBwRjP_f_m6Y/exec", {
+
+
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
