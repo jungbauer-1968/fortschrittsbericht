@@ -1,6 +1,5 @@
 async function sendForm() {
 
-    // Daten erfassen
     const data = {
         baustelle: document.getElementById("baustelle").value,
         datum: document.getElementById("datum").value,
@@ -48,8 +47,8 @@ async function sendForm() {
     };
 
 
-    // An Google Apps Script schicken
-    await fetch("https://script.google.com/macros/s/AKfycbw-iPiCXLrZtnv50GTJpenSPeg3khsboHH5pJraq0g25Ch4J598RayBwRjP_f_m6yHFE/exec", {
+    // *** DEINE ECHTE GOOGLE SCRIPT URL ***
+    await fetch("https://script.google.com/macros/s/AKfycbwNmQr8j3CqAmDW67FZnLiA2BtedtPYfiVSC2l_9wWVuT-QJK9-RAvAqRIGC-H1D_pg/exec", {
         method: "POST",
         mode: "no-cors",
         headers: { "Content-Type": "application/json" },
@@ -57,7 +56,4 @@ async function sendForm() {
     });
 
     alert("Bericht wurde erfolgreich gesendet! 👍");
-
-    // Formular zurücksetzen
-    document.querySelector("form")?.reset();
 }
