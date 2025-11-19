@@ -11,10 +11,10 @@ async function sendForm() {
         koordination: document.getElementById("koordination").value
     };
 
-    await fetch("https://script.google.com/macros/s/AKfycbwjrvCX6eUmmRR7OpjuNYD61NHfrZFAdIwfFD24Wv-5XleenhAYPGBw_8Rviybsrz1AW/exec", {
+    await fetch("https://script.google.com/macros/s/AKfycbzqMHKmHS4gYQB_3CWGA3TH6nj7jqy58CCNZiVIIW-NjTqCh1XfbGVKMUddH3yPo6ak/exec", {
         method: "POST",
         mode: "no-cors",
-        headers: { "Content-Type": "application/json" },
+        headers: {"Content-Type": "application/json"},
         body: JSON.stringify(data)
     });
 
