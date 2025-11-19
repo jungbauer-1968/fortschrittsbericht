@@ -1,141 +1,136 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Wöchentlicher Fortschrittsbericht – Elektro Jungbauer</title>
-<link rel="stylesheet" href="style.css">
-<script src="script.js?v=3" defer></script>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Wöchentlicher Fortschrittsbericht</title>
+    <link rel="stylesheet" href="style.css">
+    <script src="script.js" defer></script>
 </head>
 
 <body>
 
 <div class="container">
 
-<h1>Wöchentlicher Fortschrittsbericht</h1>
+    <h1>Wöchentlicher Fortschrittsbericht</h1>
 
-<div class="section-title">1. Allgemeine Angaben</div>
+    <div class="section-title">1. Allgemeine Angaben</div>
 
-<label>Projekt / Baustelle</label>
-<input type="text" id="baustelle">
+    <label>Projekt / Baustelle</label>
+    <input type="text" id="baustelle">
 
-<label>Datum</label>
-<input type="date" id="datum">
+    <label>Datum</label>
+    <input type="date" id="datum">
 
-<label>Monteur / Team</label>
-<input type="text" id="monteur">
+    <label>Monteur / Team</label>
+    <input type="text" id="monteur">
 
-<label>Woche / Zeitraum</label>
-<input type="text" id="zeitraum">
+    <label>Woche / Zeitraum</label>
+    <input type="text" id="zeitraum">
 
+    <div class="section-title">2. Bautagesberichte</div>
 
-<div class="section-title">2. Bautagesberichte</div>
+    <label><input type="checkbox" class="checkbox" id="berichte"> Bautagesberichte abgegeben</label>
+    <label><input type="checkbox" class="checkbox" id="fotos"> Fotos beigelegt</label>
+    <label><input type="checkbox" class="checkbox" id="besonderheiten"> Besonderheiten dokumentiert</label>
 
-<label><input type="checkbox" class="checkbox" id="berichte"> Bautagesberichte abgegeben</label>
-<label><input type="checkbox" class="checkbox" id="fotos"> Fotos beigelegt</label>
-<label><input type="checkbox" class="checkbox" id="besonderheiten"> Besonderheiten dokumentiert</label>
+    <div class="section-title">3. Leistungsfortschritt</div>
 
+    <label>Baustelleneinrichtung (%)</label>
+    <input type="number" id="baustelleneinrichtung">
 
-<div class="section-title">3. Leistungsfortschritt</div>
+    <label>Zuleitung & Zählerplätze (%)</label>
+    <input type="number" id="zuleitung">
 
-<label>Baustelleneinrichtung (%)</label>
-<input type="number" id="baustelleneinrichtung">
+    <label>Rohr- und Tragsysteme (%)</label>
+    <input type="number" id="rohr_tragsysteme">
 
-<label>Zuleitung & Zählerplätze (%)</label>
-<input type="number" id="zuleitung">
+    <label>Kabel & Leitungen (%)</label>
+    <input type="number" id="kabel_leitungen">
 
-<label>Rohr- und Tragsysteme (%)</label>
-<input type="number" id="rohr_tragsysteme">
+    <label>Schalt- und Steckgeräte (%)</label>
+    <input type="number" id="schalt_steckgeraete">
 
-<label>Kabel & Leitungen (%)</label>
-<input type="number" id="kabel_leitungen">
+    <label>PV-Anlage (%)</label>
+    <input type="number" id="pv_anlage">
 
-<label>Schalt- und Steckgeräte (%)</label>
-<input type="number" id="schalt_steckgeraete">
+    <label>Beleuchtungskörper (%)</label>
+    <input type="number" id="beleuchtungskörper">
 
-<label>PV-Anlage (%)</label>
-<input type="number" id="pv_anlage">
+    <label>Außenbeleuchtung (%)</label>
+    <input type="number" id="aussenbeleuchtung">
 
-<label>Beleuchtungskörper (%)</label>
-<input type="number" id="beleuchtungskörper">
+    <label>Antennenanlage (%)</label>
+    <input type="number" id="antennenanlage">
 
-<label>Außenbeleuchtung (%)</label>
-<input type="number" id="aussenbeleuchtung">
+    <label>Brandrauchmelder (%)</label>
+    <input type="number" id="brandrauch">
 
-<label>Antennenanlage (%)</label>
-<input type="number" id="antennenanlage">
+    <label>Dokumentation / Inbetriebnahme (%)</label>
+    <input type="number" id="dokumentation">
 
-<label>Brandrauchmelder (%)</label>
-<input type="number" id="brandrauch">
+    <label>Allgemeinkosten (%)</label>
+    <input type="number" id="allgemeinkosten">
 
-<label>Dokumentation / Inbetriebnahme (%)</label>
-<input type="number" id="dokumentation">
+    <label>NSP Verteilung (%)</label>
+    <input type="number" id="nsp_verteilung">
 
-<label>Allgemeinkosten (%)</label>
-<input type="number" id="allgemeinkosten">
+    <label>Erdung & Blitzschutz (%)</label>
+    <input type="number" id="erdung_blitzschutz">
 
-<label>NSP Verteilung (%)</label>
-<input type="number" id="nsp_verteilung">
+    <label>Kommunikationsanlagen (%)</label>
+    <input type="number" id="kommunikation">
 
-<label>Erdung & Blitzschutz (%)</label>
-<input type="number" id="erdung_blitzschutz">
+    <label>Demontagen & Montagen (%)</label>
+    <input type="number" id="demontage">
 
-<label>Kommunikationsanlagen (%)</label>
-<input type="number" id="kommunikation">
+    <label>Planung / Inbetriebnahme (%)</label>
+    <input type="number" id="planung">
 
-<label>Demontagen & Montagen (%)</label>
-<input type="number" id="demontage">
+    <label>Tiefgarage (%)</label>
+    <input type="number" id="tiefgarage">
 
-<label>Planung / Inbetriebnahme (%)</label>
-<input type="number" id="planung">
+    <label>Rohinstallation – Decke (%)</label>
+    <input type="number" id="rohrinstallation_decke">
 
-<label>Tiefgarage (%)</label>
-<input type="number" id="tiefgarage">
+    <label>Rohinstallation – Wände (%)</label>
+    <input type="number" id="rohrinstallation_waende">
 
-<label>Rohinstallation – Decke (%)</label>
-<input type="number" id="rohinstallation_decke">
+    <label>Leuchten (%)</label>
+    <input type="number" id="leuchten">
 
-<label>Rohinstallation – Wände (%)</label>
-<input type="number" id="rohinstallation_waende">
+    <label>Kabel einziehen (%)</label>
+    <input type="number" id="kabel_einziehen">
 
-<label>Leuchten (%)</label>
-<input type="number" id="leuchten">
+    <label>Sprechanlage (%)</label>
+    <input type="number" id="sprech">
 
-<label>Kabel einziehen (%)</label>
-<input type="number" id="kabel_einziehen">
+    <label>Gegensprechanlage (%)</label>
+    <input type="number" id="gegensprechanlage">
 
-<label>Sprechanlage (%)</label>
-<input type="number" id="sprech">
+    <div class="section-title">4. Regieaufwand / Materialbedarf</div>
 
-<label>Gegensprechanlage (%)</label>
-<input type="number" id="gegensprechanlage">
+    <label><input type="checkbox" class="checkbox" id="wartezeiten"> Wartezeiten anderer Gewerke</label>
+    <label><input type="checkbox" class="checkbox" id="zusatzarbeiten"> Zusatzarbeiten ohne Auftrag</label>
+    <label><input type="checkbox" class="checkbox" id="mehrarbeit"> Unvorhergesehener Mehraufwand</label>
 
+    <label>Beschreibung / Details</label>
+    <textarea id="details" rows="8"></textarea>
 
-<div class="section-title">4. Regieaufwand / Materialbedarf</div>
+    <div class="section-title">5. Weitere Rückmeldungen</div>
 
-<label><input type="checkbox" class="checkbox" id="wartezeiten"> Wartezeiten anderer Gewerke</label>
-<label><input type="checkbox" class="checkbox" id="zusatzarbeiten"> Zusatzarbeiten ohne Auftrag</label>
-<label><input type="checkbox" class="checkbox" id="mehrarbeit"> Unvorhergesehener Mehraufwand</label>
+    <label>Probleme / Verzögerungen</label>
+    <textarea id="probleme" rows="6"></textarea>
 
-<label>Beschreibung / Details</label>
-<textarea id="details" rows="8"></textarea>
+    <label>Koordination mit anderen Gewerken</label>
+    <textarea id="koordination" rows="6"></textarea>
 
+    <div class="section-title">6. Unterschrift Monteur</div>
 
-<div class="section-title">5. Weitere Rückmeldungen</div>
+    <label>Name / Kürzel</label>
+    <input type="text" id="unterschrift">
 
-<label>Probleme / Verzögerungen</label>
-<textarea id="probleme" rows="6"></textarea>
-
-<label>Koordination mit anderen Gewerken</label>
-<textarea id="koordination" rows="6"></textarea>
-
-
-<div class="section-title">6. Unterschrift Monteur</div>
-
-<label>Name / Kürzel</label>
-<input type="text" id="unterschrift">
-
-<button class="button-send" onclick="sendForm()">Speichern / Fertig</button>
+    <button class="button-send" onclick="sendForm()">Speichern / Fertig</button>
 
 </div>
 
