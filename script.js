@@ -1,11 +1,14 @@
 async function sendForm() {
+
     const data = {
-        monteur: document.getElementById("monteur").value,
         baustelle: document.getElementById("baustelle").value,
+        datum: document.getElementById("datum").value,
+        monteur: document.getElementById("monteur").value,
+        zeitraum: document.getElementById("zeitraum").value,
         details: document.getElementById("details").value,
-        prozent: document.getElementById("prozent").value,
         regie: document.getElementById("regie").value,
-        bemerkungen: document.getElementById("bemerkungen").value
+        probleme: document.getElementById("probleme").value,
+        koordination: document.getElementById("koordination").value
     };
 
     await fetch("https://script.google.com/macros/s/AKfycbwNmQr8j3CqAmDW67FZnLiA2BtedtPYfiVSC2l_9wWVuT-QJK9-RAvAqRIGC-H1D_pg/exec", {
@@ -15,5 +18,5 @@ async function sendForm() {
         body: JSON.stringify(data)
     });
 
-    alert("Bericht erfolgreich gesendet!");
+    alert("Bericht wurde erfolgreich gesendet! 👍");
 }
