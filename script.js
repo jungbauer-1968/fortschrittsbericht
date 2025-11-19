@@ -11,7 +11,8 @@ async function sendForm() {
     koordination: document.getElementById("koordination").value
   };
 
-  await fetch("HIER-DEINE-WEBAPP-URL-EINFÜGEN", {
+  await fetch(https://script.google.com/macros/s/AKfycbwjrvCX6eUmmRR7OpjuNYD61NHfZfADlwfD24Vw-5XleenhAYPGBw_8Rviybsrz1AW/exec
+", {
     method: "POST",
     mode: "no-cors",
     headers: { "Content-Type": "application/json" },
