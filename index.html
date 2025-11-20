@@ -1,33 +1,188 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1">
-  <title>Fortschrittsberichte – App Style</title>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fortschritt Übersicht</title>
 
-  <link href="style.css" rel="stylesheet">
-  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
+<style>
+    body {
+        margin: 0;
+        padding: 15px;
+        font-family: Arial, sans-serif;
+        background: #f0f2f5;
+    }
+
+    h1 {
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 15px;
+    }
+
+    .filterBox {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
+    }
+
+    select {
+        width: 100%;
+        padding: 10px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        font-size: 16px;
+    }
+
+    .card {
+        background: white;
+        padding: 18px;
+        margin-bottom: 18px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+
+    .title {
+        font-size: 20px;
+        font-weight: bold;
+    }
+
+    .subtitle {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 10px;
+    }
+
+    .sectionTitle {
+        margin-top: 15px;
+        font-size: 16px;
+        font-weight: bold;
+        color: #333;
+        border-bottom: 1px solid #ddd;
+        padding-bottom: 4px;
+        margin-bottom: 8px;
+    }
+
+    .grid2 {
+        display: grid;
+        grid-template-columns: 1fr 1fr;
+        gap: 8px 16px;
+    }
+
+    .fieldRow {
+        font-size: 14px;
+        padding: 6px 0;
+        border-bottom: 1px solid #eee;
+    }
+
+    .label {
+        font-weight: bold;
+        color: #444;
+    }
+
+</style>
 </head>
+
 <body>
 
-<header class="appHeader">
-  <span class="material-symbols-rounded logoIcon">construction</span>
-  <h1>Fortschritt</h1>
-</header>
+<h1>📊 Fortschrittsberichte</h1>
 
 <div class="filterBox">
-  <label for="monteurFilter">Monteur auswählen:</label>
-  <select id="monteurFilter">
-    <option value="">Alle</option>
-  </select>
+    <label><strong>Monteur auswählen:</strong></label>
+    <select id="monteurFilter">
+        <option value="">Alle</option>
+    </select>
 </div>
-
-<p id="noDataMsg" class="noData" style="display:none;">
-  Noch keine Berichte vorhanden.
-</p>
 
 <div id="cards"></div>
 
-<script src="script.js"></script>
+<script>
+const SHEET_CSV_URL = 
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+
+async function loadData() {
+
+    const res = await fetch(SHEET_CSV_URL);
+    const text = await res.text();
+
+    const rows = text.split(/\r?\n/).map(r => r.split(","));
+    const headers = rows[0];
+    const data = rows.slice(1);
+
+    const monteurIndex = headers.indexOf("Monteur / Team");
+    const cardsBox = document.getElementById("cards");
+    const filter = document.getElementById("monteurFilter");
+
+    // Monteure einfügen
+    const names = [...new Set(data.map(r => r[monteurIndex]).filter(Boolean))];
+    names.forEach(n => {
+        let o = document.createElement("option");
+        o.value = n;
+        o.textContent = n;
+        filter.appendChild(o);
+    });
+
+    function render() {
+        cardsBox.innerHTML = "";
+        const choose = filter.value;
+
+        data.forEach(row => {
+            if (choose && row[monteurIndex] !== choose) return;
+
+            let card = document.createElement("div");
+            card.className = "card";
+
+            const projekt = row[headers.indexOf("Projekt/ Baustelle")] || "";
+            const datum = row[headers.indexOf("Datum")] || "";
+            const woche = row[headers.indexOf("Woche / Zeitraum")] || "";
+            const monteur = row[headers.indexOf("Monteur / Team")] || "";
+
+            card.innerHTML = `
+                <div class="title">${projekt}</div>
+                <div class="subtitle">${datum} – ${monteur} – ${woche}</div>
+
+                <div class="sectionTitle">Leistungsfortschritt</div>
+                <div class="grid2">
+                    ${headers
+                        .filter(h => h.includes("(%)"))
+                        .map(h => `
+                            <div class="fieldRow">
+                                <span class="label">${h.replace("(%)", "")}</span>: 
+                                ${row[headers.indexOf(h)]}%
+                            </div>
+                        `).join("")}
+                </div>
+
+                <div class="sectionTitle">Bautagesberichte</div>
+                <div class="fieldRow">Bautagesbericht abgegeben: ${row[headers.indexOf("Bautagesberichte abgegeben")]}</div>
+                <div class="fieldRow">Fotos beigelegt: ${row[headers.indexOf("Fotos beigelegt")]}</div>
+                <div class="fieldRow">Besonderheiten dokumentiert: ${row[headers.indexOf("Besonderheiten dokumentiert")]}</div>
+
+                <div class="sectionTitle">Regie & Material</div>
+                <div class="fieldRow">Wartezeiten andere Gewerke: ${row[headers.indexOf("Wartezeiten anderer Gewerke")]}</div>
+                <div class="fieldRow">Zusatzarbeiten ohne Auftrag: ${row[headers.indexOf("Zusatzarbeiten ohne Auftrag (Regie)")]}</div>
+                <div class="fieldRow">Unvorhergesehener Mehraufwand: ${row[headers.indexOf("Unvorhergesehener Mehraufwand")]}</div>
+                <div class="fieldRow"><strong>Beschreibung:</strong> ${row[headers.indexOf("Beschreibung / Details")]}</div>
+
+                <div class="sectionTitle">Rückmeldungen</div>
+                <div class="fieldRow"><strong>Probleme:</strong> ${row[headers.indexOf("Probleme / Verzögerungen")]}</div>
+                <div class="fieldRow"><strong>Koordination:</strong> ${row[headers.indexOf("Koordination mit anderen Gewerken")]}</div>
+                <div class="fieldRow"><strong>Bestätigung Monteur:</strong> ${row[headers.indexOf("Bestätigung Name Monteur")]}</div>
+            `;
+
+            cardsBox.appendChild(card);
+        });
+    }
+
+    filter.addEventListener("change", render);
+    render();
+}
+
+loadData();
+</script>
+
 </body>
 </html>
+
