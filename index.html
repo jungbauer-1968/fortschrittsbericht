@@ -3,169 +3,26 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fortschrittsberichte – Mobile Ansicht</title>
+<title>Fortschrittsberichte – App Style</title>
 
-<style>
-    body {
-        margin: 0;
-        padding: 15px;
-        font-family: Arial, sans-serif;
-        background: #f0f2f5;
-    }
+<link href="style.css" rel="stylesheet">
+<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
 
-    h1 {
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 15px;
-    }
-
-    .filterBox {
-        background: white;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        margin-bottom: 15px;
-    }
-
-    select {
-        width: 100%;
-        padding: 10px;
-        font-size: 16px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-    }
-
-    .card {
-        background: white;
-        padding: 15px;
-        margin-bottom: 15px;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
-    }
-
-    .title {
-        font-size: 18px;
-        font-weight: bold;
-        margin-bottom: 8px;
-    }
-
-    .subtitle {
-        font-size: 14px;
-        color: #555;
-        margin-bottom: 10px;
-    }
-
-    .progressBar {
-        width: 100%;
-        height: 12px;
-        background: #e0e0e0;
-        border-radius: 20px;
-        overflow: hidden;
-        margin-top: 8px;
-        margin-bottom: 10px;
-    }
-
-    .progressFill {
-        height: 100%;
-        background: #4caf50;
-        width: 0%;
-    }
-
-    .label {
-        font-size: 13px;
-        margin-top: 5px;
-    }
-
-</style>
 </head>
-
 <body>
 
-<h1>📋 Fortschrittsberichte</h1>
+<header class="appHeader">
+    <span class="material-symbols-rounded logoIcon">construction</span>
+    <h1>Fortschritt</h1>
+</header>
 
 <div class="filterBox">
-    <label for="monteurFilter"><strong>Monteur auswählen:</strong></label>
-    <select id="monteurFilter">
-        <option value="">Alle</option>
-    </select>
+    <label>Monteur auswählen:</label>
+    <select id="monteurFilter"></select>
 </div>
 
 <div id="cards"></div>
 
-<script>
-const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
-
-async function loadData() {
-    const res = await fetch(SHEET_CSV_URL);
-    const text = await res.text();
-
-    const rows = text
-        .split(/\r?\n/)
-        .map(r => r.split(","))
-        .filter(r => r.length > 1);
-
-    const headers = rows[0];
-    const data = rows.slice(1);
-
-    const monteurIndex = headers.findIndex(h => h.toLowerCase().includes("monteur"));
-    const cardsBox = document.getElementById("cards");
-    const filterBox = document.getElementById("monteurFilter");
-
-    // Monteure sammeln
-    const monteure = new Set();
-    data.forEach(r => {
-        if (r[monteurIndex]) monteure.add(r[monteurIndex]);
-    });
-
-    [...monteure].sort().forEach(name => {
-        const opt = document.createElement("option");
-        opt.value = name;
-        opt.textContent = name;
-        filterBox.appendChild(opt);
-    });
-
-    function renderCards() {
-        cardsBox.innerHTML = "";
-        const filter = filterBox.value;
-
-        data.forEach(row => {
-            if (filter && row[monteurIndex] !== filter) return;
-
-            const card = document.createElement("div");
-            card.className = "card";
-
-            const projekt = row[headers.indexOf("Projekt / Baustelle")] || "–";
-            const datum = row[headers.indexOf("Datum")] || "–";
-            const monteur = row[monteurIndex] || "–";
-
-            // irgendein % Feld nehmen als Hauptbalken
-            const idxFortschritt = headers.findIndex(h => h.includes("(%)"));
-            let progress = row[idxFortschritt] || "0";
-            progress = progress.replace("%","");
-
-            card.innerHTML = `
-                <div class="title">${projekt}</div>
-                <div class="subtitle">${datum} – ${monteur}</div>
-
-                <div class="label">Fortschritt:</div>
-                <div class="progressBar">
-                    <div class="progressFill" style="width:${progress}%"></div>
-                </div>
-
-                <div class="label">Gesamtfortschritt: <strong>${progress}%</strong></div>
-            `;
-
-            cardsBox.appendChild(card);
-        });
-    }
-
-    filterBox.addEventListener("change", renderCards);
-    renderCards();
-}
-
-loadData();
-</script>
-
+<script src="script.js"></script>
 </body>
 </html>
