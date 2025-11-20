@@ -3,7 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fortschritt Übersicht</title>
+  <title>Fortschrittsberichte – Übersicht</title>
   <style>
     :root {
       --bg: #f0f2f5;
@@ -63,16 +63,28 @@
       font-size: 14px;
     }
 
-    .filterBox label {
+    .filterBox-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .filterField {
+      flex: 1 1 180px;
+      min-width: 0;
+    }
+
+    .filterField label {
       display: block;
       margin-bottom: 4px;
       font-weight: 600;
+      font-size: 13px;
     }
 
-    .filterBox select {
+    .filterField select {
       width: 100%;
       padding: 9px 10px;
-      font-size: 15px;
+      font-size: 14px;
       border-radius: 8px;
       border: 1px solid #ccc;
     }
@@ -80,7 +92,7 @@
     .hint {
       font-size: 12px;
       color: var(--text-sub);
-      margin-top: 4px;
+      margin-top: 6px;
     }
 
     .card {
@@ -211,16 +223,6 @@
       color: var(--text-sub);
     }
 
-    .badge {
-      display: inline-block;
-      padding: 2px 8px;
-      border-radius: 999px;
-      font-size: 11px;
-      background: #eee;
-      color: #333;
-      margin-top: 4px;
-    }
-
     .badge-problem {
       background: #ffebee;
       color: #b71c1c;
@@ -239,6 +241,29 @@
       border-radius: 8px;
       font-size: 13px;
       margin-top: 6px;
+    }
+
+    .photo-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 6px;
+      margin-top: 6px;
+    }
+
+    .photo-thumb-wrapper {
+      width: 70px;
+      height: 70px;
+      border-radius: 10px;
+      overflow: hidden;
+      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
+      background: #eee;
+    }
+
+    .photo-thumb {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+      display: block;
     }
 
     .no-data {
@@ -280,10 +305,20 @@
 
   <main>
     <div class="filterBox">
-      <label for="monteurFilter">Monteur / Team auswählen:</label>
-      <select id="monteurFilter">
-        <option value="">Alle</option>
-      </select>
+      <div class="filterBox-row">
+        <div class="filterField">
+          <label for="projectFilter">Baustelle auswählen:</label>
+          <select id="projectFilter">
+            <option value="">Alle Baustellen</option>
+          </select>
+        </div>
+        <div class="filterField">
+          <label for="monteurFilter">Monteur / Team auswählen:</label>
+          <select id="monteurFilter">
+            <option value="">Alle Monteure</option>
+          </select>
+        </div>
+      </div>
       <div class="hint">
         Tipp: Am Handy Querformat drehen, dann siehst du mehr Kacheln nebeneinander.
       </div>
@@ -300,7 +335,7 @@
       "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
     function parseCSV(text) {
-      // einfache CSV-Variante – reicht hier, solange keine Kommas in Antworten
+      // einfache CSV-Variante – funktioniert, solange keine Kommas in Antworten sind
       return text
         .trim()
         .split(/\r?\n/)
@@ -314,9 +349,11 @@
 
     function toNumber(val) {
       if (!val) return 0;
-      return parseFloat(
-        val.replace("%", "").replace(",", ".").replace(" ", "")
-      ) || 0;
+      return (
+        parseFloat(
+          val.replace("%", "").replace(",", ".").replace(" ", "")
+        ) || 0
+      );
     }
 
     function getTileClass(value) {
@@ -355,8 +392,8 @@
       return tile;
     }
 
-    function renderGroup(card, title, headers, row, headerMap) {
-      const relevant = headers.filter((key) => headerMap[key] !== undefined);
+    function renderGroup(card, title, headersList, row, headerMap) {
+      const relevant = headersList.filter((key) => headerMap[key] !== undefined);
       if (!relevant.length) return;
 
       const secTitle = document.createElement("div");
@@ -377,6 +414,16 @@
       card.appendChild(grid);
     }
 
+    function driveLinkToImage(link) {
+      // versucht, aus einem Drive-Link eine direkte Bild-URL zu machen
+      if (!link) return null;
+      const idMatch = link.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
+      if (idMatch) {
+        return "https://drive.google.com/uc?export=view&id=" + idMatch[1];
+      }
+      return link; // sonst einfach direkt versuchen
+    }
+
     async function loadData() {
       const res = await fetch(SHEET_CSV_URL);
       const text = await res.text();
@@ -389,7 +436,8 @@
 
       const cardsContainer = document.getElementById("cards");
       const noData = document.getElementById("noData");
-      const filter = document.getElementById("monteurFilter");
+      const filterMonteur = document.getElementById("monteurFilter");
+      const filterProject = document.getElementById("projectFilter");
 
       const idxProjekt = findIndex(headers, "projekt/ baustelle");
       const idxDatum = findIndex(headers, "datum");
@@ -400,28 +448,46 @@
       const idxProbleme = findIndex(headers, "probleme / verzögerungen");
       const idxKoord = findIndex(headers, "koordination mit anderen gewerken");
       const idxBestätigung = findIndex(headers, "bestätigung name monteur");
+      const idxFotos = findIndex(headers, "fotos");
 
-      // Map für alle Prozent-Felder (für Durchschnitt)
       const percentIndexes = headers
         .map((h, i) => (h.includes("(%)") ? i : -1))
         .filter((i) => i >= 0);
 
-      // Map: „technische“ Keys -> Index
       const headerMap = {};
       headers.forEach((h, i) => {
         headerMap[h.trim()] = i;
       });
 
-      // Monteure in Filter
+      // Filter-Optionen
       const monteure = [
-        ...new Set(data.map((r) => (idxMonteur >= 0 ? r[idxMonteur] : "")).filter(Boolean)),
+        ...new Set(
+          data
+            .map((r) => (idxMonteur >= 0 ? r[idxMonteur] : ""))
+            .filter(Boolean)
+        ),
       ].sort();
 
       monteure.forEach((m) => {
         const opt = document.createElement("option");
         opt.value = m;
         opt.textContent = m;
-        filter.appendChild(opt);
+        filterMonteur.appendChild(opt);
+      });
+
+      const projekte = [
+        ...new Set(
+          data
+            .map((r) => (idxProjekt >= 0 ? r[idxProjekt] : ""))
+            .filter(Boolean)
+        ),
+      ].sort();
+
+      projekte.forEach((p) => {
+        const opt = document.createElement("option");
+        opt.value = p;
+        opt.textContent = p;
+        filterProject.appendChild(opt);
       });
 
       const GROUPS = {
@@ -429,7 +495,7 @@
           "Baustelleneinrichtung (%)",
           "Allgemeinkosten (%)",
         ],
-        "Installation": [
+        Installation: [
           "Zuleitung & Zählerplätze (%)",
           "Rohr- und Tragsysteme (%)",
           "Kabel & Leitungen (%)",
@@ -442,7 +508,7 @@
           "Rohinstallation – Decke (%)",
           "Rohinstallation – Wände (%)",
         ],
-        "Beleuchtung": [
+        Beleuchtung: [
           "Beleuchtungskörper (%)",
           "Außenbeleuchtung (%)",
           "Leuchten (%)",
@@ -456,16 +522,29 @@
           "Gegensprechanlage (%)",
           "Antennenanlage (%)",
         ],
-        "Dokumentation": ["Dokumentation / Inbetriebnahme (%)"],
+        Dokumentation: ["Dokumentation / Inbetriebnahme (%)"],
       };
+
+      // Für etwas bessere Sortierung: nach Projekt, dann Datum (Textsortierung reicht erstmal)
+      const sortedData = [...data].sort((a, b) => {
+        const pa = idxProjekt >= 0 ? a[idxProjekt] : "";
+        const pb = idxProjekt >= 0 ? b[idxProjekt] : "";
+        if (pa < pb) return -1;
+        if (pa > pb) return 1;
+        const da = idxDatum >= 0 ? a[idxDatum] : "";
+        const db = idxDatum >= 0 ? b[idxDatum] : "";
+        return da < db ? -1 : da > db ? 1 : 0;
+      });
 
       function render() {
         cardsContainer.innerHTML = "";
         let count = 0;
-        const selectedMonteur = filter.value;
+        const selMonteur = filterMonteur.value;
+        const selProject = filterProject.value;
 
-        data.forEach((row) => {
-          if (selectedMonteur && row[idxMonteur] !== selectedMonteur) return;
+        sortedData.forEach((row) => {
+          if (selMonteur && row[idxMonteur] !== selMonteur) return;
+          if (selProject && row[idxProjekt] !== selProject) return;
 
           const card = document.createElement("article");
           card.className = "card";
@@ -492,7 +571,7 @@
           headerDiv.appendChild(titleBlock);
           card.appendChild(headerDiv);
 
-          // Gesamt-Fortschritt
+          // Gesamtfortschritt
           if (percentIndexes.length) {
             const values = percentIndexes.map((i) => toNumber(row[i]));
             const sum = values.reduce((a, b) => a + b, 0);
@@ -514,7 +593,7 @@
             card.appendChild(bar);
           }
 
-          // Gruppen rendern
+          // Gruppen
           Object.entries(GROUPS).forEach(([groupTitle, cols]) =>
             renderGroup(card, groupTitle, cols, row, headerMap)
           );
@@ -559,6 +638,47 @@
             card.appendChild(info);
           }
 
+          // Fotos
+          if (idxFotos >= 0 && row[idxFotos]) {
+            const secTitle = document.createElement("div");
+            secTitle.className = "section-title";
+            secTitle.textContent = "Fotos / Nachweise";
+            card.appendChild(secTitle);
+
+            const photoGrid = document.createElement("div");
+            photoGrid.className = "photo-grid";
+
+            const raw = row[idxFotos];
+            const parts = raw.split(/\s+/).filter((p) =>
+              p.startsWith("http")
+            );
+
+            parts.forEach((link) => {
+              const imgSrc = driveLinkToImage(link);
+              const wrapper = document.createElement("a");
+              wrapper.href = link;
+              wrapper.target = "_blank";
+              wrapper.className = "photo-thumb-wrapper";
+
+              const img = document.createElement("img");
+              img.className = "photo-thumb";
+              img.src = imgSrc;
+
+              wrapper.appendChild(img);
+              photoGrid.appendChild(wrapper);
+            });
+
+            if (parts.length === 0) {
+              const none = document.createElement("div");
+              none.style.fontSize = "12px";
+              none.style.color = "#777";
+              none.textContent = "Keine Fotos hochgeladen.";
+              card.appendChild(none);
+            } else {
+              card.appendChild(photoGrid);
+            }
+          }
+
           // Bestätigung Monteur
           if (idxBestätigung >= 0 && row[idxBestätigung]) {
             const block = document.createElement("div");
@@ -576,15 +696,16 @@
         noData.style.display = count ? "none" : "block";
       }
 
-      filter.addEventListener("change", render);
+      filterMonteur.addEventListener("change", render);
+      filterProject.addEventListener("change", render);
       render();
     }
 
     loadData().catch((err) => {
       console.error(err);
-      document.getElementById("noData").textContent =
-        "Fehler beim Laden der Daten.";
-      document.getElementById("noData").style.display = "block";
+      const nd = document.getElementById("noData");
+      nd.textContent = "Fehler beim Laden der Daten.";
+      nd.style.display = "block";
     });
   </script>
 </body>
