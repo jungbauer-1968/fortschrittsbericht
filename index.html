@@ -1,25 +1,30 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fortschrittsberichte – App Style</title>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>Fortschrittsberichte – App Style</title>
 
-<link href="style.css" rel="stylesheet">
-<link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
-
+  <link href="style.css" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Material+Symbols+Rounded" rel="stylesheet" />
 </head>
 <body>
 
 <header class="appHeader">
-    <span class="material-symbols-rounded logoIcon">construction</span>
-    <h1>Fortschritt</h1>
+  <span class="material-symbols-rounded logoIcon">construction</span>
+  <h1>Fortschritt</h1>
 </header>
 
 <div class="filterBox">
-    <label>Monteur auswählen:</label>
-    <select id="monteurFilter"></select>
+  <label for="monteurFilter">Monteur auswählen:</label>
+  <select id="monteurFilter">
+    <option value="">Alle</option>
+  </select>
 </div>
+
+<p id="noDataMsg" class="noData" style="display:none;">
+  Noch keine Berichte vorhanden.
+</p>
 
 <div id="cards"></div>
 
