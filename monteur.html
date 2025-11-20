@@ -1,0 +1,242 @@
+<!DOCTYPE html>
+<html lang="de">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Monteur – Fortschritt</title>
+
+<style>
+    body {
+        margin: 0;
+        padding: 15px;
+        background: #f4f4f4;
+        font-family: Arial, sans-serif;
+    }
+    h1 {
+        text-align: center;
+        margin-bottom: 20px;
+        font-size: 24px;
+    }
+    .inputBox {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        max-width: 450px;
+        margin: 0 auto 20px auto;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    input {
+        width: 100%;
+        padding: 12px;
+        font-size: 18px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
+        margin-top: 10px;
+    }
+    button {
+        width: 100%;
+        padding: 12px;
+        margin-top: 12px;
+        background: #007bff;
+        border: none;
+        border-radius: 8px;
+        color: white;
+        font-size: 18px;
+        cursor: pointer;
+    }
+    button:hover {
+        background: #005fcc;
+    }
+    .card {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+        margin-bottom: 15px;
+    }
+    .title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 5px;
+    }
+    .subtitle {
+        font-size: 14px;
+        color: #777;
+        margin-bottom: 10px;
+    }
+
+    .badge-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .badge {
+        padding: 8px;
+        font-size: 13px;
+        border-radius: 7px;
+        text-align: center;
+        font-weight: bold;
+        color: white;
+    }
+    .red { background: #d9534f; }
+    .yellow { background: #f0ad4e; }
+    .green { background: #5cb85c; }
+
+    .warnbox {
+        background: #ffdddd;
+        border-left: 5px solid #cc0000;
+        padding: 10px;
+        border-radius: 5px;
+        margin-top: 10px;
+        color: #700;
+    }
+
+    .photogrid {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 6px;
+        margin-top: 10px;
+    }
+    .photogrid img {
+        width: 75px;
+        height: 75px;
+        border-radius: 6px;
+        object-fit: cover;
+        border: 2px solid #ddd;
+        cursor: pointer;
+    }
+</style>
+</head>
+
+<body>
+
+<h1>👷 Fortschritt – Monteur</h1>
+
+<div id="inputSection" class="inputBox">
+    <label><strong>Bitte Nachnamen eingeben:</strong></label>
+    <input id="nameInput" type="text" placeholder="z.B. Haindl">
+    <button onclick="start()">Weiter</button>
+</div>
+
+<div id="result"></div>
+
+<script>
+const CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+
+async function start() {
+    let name = document.getElementById("nameInput").value.trim().toLowerCase();
+
+    if(name.length < 2){
+        alert("Bitte Nachnamen eingeben!");
+        return;
+    }
+
+    document.getElementById("inputSection").style.display = "none";
+    loadMonteur(name);
+}
+
+async function loadMonteur(name) {
+    const res = await fetch(CSV);
+    const text = await res.text();
+    const rows = text.split(/\r?\n/).map(r => r.split(","));
+
+    const headers = rows[0];
+    const data = rows.slice(1);
+
+    const idxProjekt = headers.indexOf("Projekt/ Baustelle");
+    const idxDatum = headers.indexOf("Datum");
+    const idxMonteur = headers.indexOf("Monteur / Team");
+    const idxFotos = headers.indexOf("Fotos");
+    const idxProbleme = headers.indexOf("Probleme / Verzögerungen");
+
+    const prozentFelder = headers
+        .map((h,i) => h.includes("(%)") ? i : -1)
+        .filter(i => i >= 0);
+
+    const result = document.getElementById("result");
+    result.innerHTML = "<h2>⛑ Deine Baustellen</h2>";
+
+    let eintraege = data.filter(r => 
+        r[idxMonteur] && 
+        r[idxMonteur].toLowerCase().includes(name)
+    );
+
+    if(eintraege.length === 0){
+        result.innerHTML = "<p>Keine Einträge gefunden. Schreib deinen Namen genau wie im Bericht.</p>";
+        return;
+    }
+
+    // Nach Baustelle gruppieren
+    let gruppiert = {};
+    eintraege.forEach(r => {
+        let p = r[idxProjekt] || "Ohne Projekt";
+        if(!gruppiert[p]) gruppiert[p] = [];
+        gruppiert[p].push(r);
+    });
+
+    // Pro Baustelle: letzter Eintrag
+    Object.keys(gruppiert).forEach(projekt => {
+
+        let liste = gruppiert[projekt];
+        liste.sort((a,b) => new Date(b[idxDatum]) - new Date(a[idxDatum]));
+        let r = liste[0]; // letzter Eintrag
+
+        let card = document.createElement("div");
+        card.className = "card";
+
+        card.innerHTML += `
+            <div class="title">${projekt}</div>
+            <div class="subtitle">${r[idxDatum]} – ${r[idxMonteur]}</div>
+        `;
+
+        // Prozentkacheln
+        let grid = document.createElement("div");
+        grid.className = "badge-grid";
+
+        prozentFelder.forEach(i => {
+            let label = headers[i].replace("(%)","");
+            let val = parseInt(r[i] || "0");
+
+            let color = val <= 33 ? "red" : val <= 66 ? "yellow" : "green";
+
+            let b = document.createElement("div");
+            b.className = `badge ${color}`;
+            b.textContent = `${label.trim()} ${val}%`;
+
+            grid.appendChild(b);
+        });
+
+        card.appendChild(grid);
+
+        // Probleme
+        if(r[idxProbleme] && r[idxProbleme].trim() !== ""){
+            card.innerHTML += `
+                <div class="warnbox">
+                    ⚠️ <strong>Probleme:</strong><br>${r[idxProbleme]}
+                </div>
+            `;
+        }
+
+        // Fotos
+        if(r[idxFotos] && r[idxFotos].includes("http")){
+            const links = r[idxFotos].split(" ").filter(l => l.includes("http"));
+            let pg = document.createElement("div");
+            pg.className = "photogrid";
+
+            links.forEach(link => {
+                let img = document.createElement("img");
+                img.src = link.replace("open?", "thumbnail?");
+                img.onclick = () => window.open(link, "_blank");
+                pg.appendChild(img);
+            });
+
+            card.appendChild(pg);
+        }
+
+        result.appendChild(card);
+    });
+}
+</script>
+</body>
+</html>
