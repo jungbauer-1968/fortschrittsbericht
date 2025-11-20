@@ -1,181 +1,172 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <title>Wöchentliche Fortschrittsberichte</title>
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <style>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Fortschrittsberichte – Mobile Ansicht</title>
+
+<style>
     body {
-      font-family: system-ui, -apple-system, BlinkMacSystemFont, "Segoe UI", sans-serif;
-      background: #f5f5f5;
-      margin: 0;
-      padding: 2rem;
+        margin: 0;
+        padding: 15px;
+        font-family: Arial, sans-serif;
+        background: #f0f2f5;
     }
+
     h1 {
-      text-align: center;
-      margin-bottom: 1rem;
+        text-align: center;
+        font-size: 22px;
+        font-weight: bold;
+        margin-bottom: 15px;
     }
-    .toolbar {
-      max-width: 1100px;
-      margin: 0 auto 1rem auto;
-      display: flex;
-      gap: 1rem;
-      align-items: center;
-      flex-wrap: wrap;
+
+    .filterBox {
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
     }
+
     select {
-      padding: 0.3rem 0.6rem;
-      font-size: 0.9rem;
+        width: 100%;
+        padding: 10px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
     }
-    table {
-      border-collapse: collapse;
-      width: 100%;
-      max-width: 1100px;
-      margin: 0 auto;
-      background: white;
-      border-radius: 8px;
-      overflow: hidden;
-      box-shadow: 0 2px 8px rgba(0,0,0,0.08);
-      font-size: 0.85rem;
+
+    .card {
+        background: white;
+        padding: 15px;
+        margin-bottom: 15px;
+        border-radius: 12px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
     }
-    th, td {
-      border-bottom: 1px solid #eee;
-      padding: 0.4rem 0.6rem;
-      vertical-align: top;
+
+    .title {
+        font-size: 18px;
+        font-weight: bold;
+        margin-bottom: 8px;
     }
-    th {
-      background: #e91e63;
-      color: white;
-      position: sticky;
-      top: 0;
-      z-index: 1;
+
+    .subtitle {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 10px;
     }
-    tr:nth-child(even) td {
-      background: #fafafa;
+
+    .progressBar {
+        width: 100%;
+        height: 12px;
+        background: #e0e0e0;
+        border-radius: 20px;
+        overflow: hidden;
+        margin-top: 8px;
+        margin-bottom: 10px;
     }
-    .progress-cell {
-      min-width: 120px;
+
+    .progressFill {
+        height: 100%;
+        background: #4caf50;
+        width: 0%;
     }
-    .bar-wrap {
-      background:#eee;
-      border-radius:999px;
-      overflow:hidden;
-      height: 10px;
-      margin-top: 2px;
+
+    .label {
+        font-size: 13px;
+        margin-top: 5px;
     }
-    .bar {
-      height:100%;
-      background:#4caf50;
-      width:0%;
-      transition: width .3s;
-    }
-  </style>
+
+</style>
 </head>
+
 <body>
-  <h1>Wöchentliche Fortschrittsberichte</h1>
 
-  <div class="toolbar">
-    <label>
-      Monteur / Team:
-      <select id="monteurFilter">
+<h1>📋 Fortschrittsberichte</h1>
+
+<div class="filterBox">
+    <label for="monteurFilter"><strong>Monteur auswählen:</strong></label>
+    <select id="monteurFilter">
         <option value="">Alle</option>
-      </select>
-    </label>
-    <span id="info" style="font-size:0.85rem;color:#555;"></span>
-  </div>
+    </select>
+</div>
 
-  <table id="reportTable">
-    <thead></thead>
-    <tbody></tbody>
-  </table>
+<div id="cards"></div>
 
-  <script>
-    const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+<script>
+const SHEET_CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
-    async function loadData() {
-      const res = await fetch(SHEET_CSV_URL);
-      const text = await res.text();
+async function loadData() {
+    const res = await fetch(SHEET_CSV_URL);
+    const text = await res.text();
 
-      const rows = text
+    const rows = text
         .split(/\r?\n/)
-        .filter(r => r.trim().length > 0)
-        .map(r => r.split(","));
+        .map(r => r.split(","))
+        .filter(r => r.length > 1);
 
-      const headers = rows[0];
-      const dataRows = rows.slice(1);
+    const headers = rows[0];
+    const data = rows.slice(1);
 
-      const thead = document.querySelector("#reportTable thead");
-      const tbody = document.querySelector("#reportTable tbody");
-      thead.innerHTML = "";
-      tbody.innerHTML = "";
+    const monteurIndex = headers.findIndex(h => h.toLowerCase().includes("monteur"));
+    const cardsBox = document.getElementById("cards");
+    const filterBox = document.getElementById("monteurFilter");
 
-      const trHead = document.createElement("tr");
-      headers.forEach(h => {
-        const th = document.createElement("th");
-        th.textContent = h;
-        trHead.appendChild(th);
-      });
-      thead.appendChild(trHead);
+    // Monteure sammeln
+    const monteure = new Set();
+    data.forEach(r => {
+        if (r[monteurIndex]) monteure.add(r[monteurIndex]);
+    });
 
-      const monteurIndex = headers.findIndex(h => h.toLowerCase().includes("monteur"));
-
-      const monteurFilter = document.getElementById("monteurFilter");
-      const monteure = new Set();
-      dataRows.forEach(r => {
-        if (monteurIndex >= 0 && r[monteurIndex]) {
-          monteure.add(r[monteurIndex]);
-        }
-      });
-      [...monteure].sort().forEach(name => {
+    [...monteure].sort().forEach(name => {
         const opt = document.createElement("option");
         opt.value = name;
         opt.textContent = name;
-        monteurFilter.appendChild(opt);
-      });
+        filterBox.appendChild(opt);
+    });
 
-      function renderTable() {
-        const filter = monteurFilter.value;
-        tbody.innerHTML = "";
-        let count = 0;
+    function renderCards() {
+        cardsBox.innerHTML = "";
+        const filter = filterBox.value;
 
-        dataRows.forEach(row => {
-          if (filter && row[monteurIndex] !== filter) return;
+        data.forEach(row => {
+            if (filter && row[monteurIndex] !== filter) return;
 
-          const tr = document.createElement("tr");
-          row.forEach((cell, idx) => {
-            const td = document.createElement("td");
-            const header = headers[idx].toLowerCase();
+            const card = document.createElement("div");
+            card.className = "card";
 
-            if (header.includes("%")) {
-              const val = parseInt(cell || "0", 10) || 0;
-              td.classList.add("progress-cell");
-              td.innerHTML = `
-                ${val} %
-                <div class="bar-wrap">
-                  <div class="bar" style="width:${Math.max(0, Math.min(val,100))}%"></div>
-                </div>`;
-            } else {
-              td.textContent = cell;
-            }
+            const projekt = row[headers.indexOf("Projekt / Baustelle")] || "–";
+            const datum = row[headers.indexOf("Datum")] || "–";
+            const monteur = row[monteurIndex] || "–";
 
-            tr.appendChild(td);
-          });
-          tbody.appendChild(tr);
-          count++;
+            // irgendein % Feld nehmen als Hauptbalken
+            const idxFortschritt = headers.findIndex(h => h.includes("(%)"));
+            let progress = row[idxFortschritt] || "0";
+            progress = progress.replace("%","");
+
+            card.innerHTML = `
+                <div class="title">${projekt}</div>
+                <div class="subtitle">${datum} – ${monteur}</div>
+
+                <div class="label">Fortschritt:</div>
+                <div class="progressBar">
+                    <div class="progressFill" style="width:${progress}%"></div>
+                </div>
+
+                <div class="label">Gesamtfortschritt: <strong>${progress}%</strong></div>
+            `;
+
+            cardsBox.appendChild(card);
         });
-
-        document.getElementById("info").textContent =
-          count + " Einträge" + (filter ? " für " + filter : "");
-      }
-
-      monteurFilter.addEventListener("change", renderTable);
-      renderTable();
     }
 
-    loadData().catch(err => {
-      console.error(err);
-      document.getElementById("info").textContent = "Fehler beim Laden der Daten.";
-    });
-  </script>
+    filterBox.addEventListener("change", renderCards);
+    renderCards();
+}
+
+loadData();
+</script>
+
 </body>
 </html>
+
