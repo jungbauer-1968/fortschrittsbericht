@@ -4,6 +4,7 @@ body {
     background: #f4f4f4;
 }
 
+/* Kopfzeile / App-Header */
 .appHeader {
     width: 100%;
     background: #d32f2f;
@@ -16,68 +17,148 @@ body {
 }
 
 .logoIcon {
-    font-size: 30px;
+    font-size: 28px;
 }
 
-h1 {
+.appHeader h1 {
     font-size: 22px;
     margin: 0;
 }
 
+/* Filterbox */
 .filterBox {
     margin: 15px;
     background: white;
     padding: 12px;
     border-radius: 12px;
     box-shadow: 0 1px 4px rgba(0,0,0,0.1);
+    font-size: 14px;
 }
 
 .filterBox select {
     width: 100%;
-    padding: 10px;
-    font-size: 16px;
+    margin-top: 5px;
+    padding: 9px 10px;
+    font-size: 15px;
     border-radius: 10px;
     border: 1px solid #ccc;
-    margin-top: 5px;
 }
 
+/* Hinweistext bei keinen Daten */
+.noData {
+    text-align: center;
+    color: #777;
+    font-size: 14px;
+    margin-top: 25px;
+}
+
+/* Karten / Einträge */
 .card {
-    margin: 15px;
+    margin: 10px 15px 15px 15px;
     background: white;
     border-radius: 14px;
-    padding: 15px;
+    padding: 12px 14px 14px 14px;
     box-shadow: 0 2px 6px rgba(0,0,0,0.12);
-    animation: fadeIn 0.3s ease;
+    animation: fadeIn 0.25s ease;
+}
+
+.cardHeader {
+    display: flex;
+    justify-content: space-between;
+    align-items: flex-start;
+    gap: 10px;
 }
 
 .cardTitle {
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
+    margin-bottom: 2px;
 }
 
 .cardSub {
     color: #555;
-    margin-bottom: 10px;
-    font-size: 14px;
+    font-size: 13px;
+}
+
+.toggleBtn {
+    border: none;
+    border-radius: 999px;
+    padding: 4px 10px;
+    font-size: 12px;
+    background: #eeeeee;
+    cursor: pointer;
+    white-space: nowrap;
+}
+
+.card.open .toggleBtn {
+    background: #d32f2f;
+    color: white;
+}
+
+/* Fortschrittsbereich */
+.progressSection {
+    margin-top: 10px;
+}
+
+.progressLabel {
+    font-size: 13px;
+    margin-bottom: 4px;
 }
 
 .progressBar {
     width: 100%;
-    height: 12px;
-    background: #ddd;
+    height: 10px;
+    background: #dddddd;
     border-radius: 10px;
     overflow: hidden;
-    margin-top: 10px;
 }
 
 .progressFill {
     height: 100%;
     background: #4caf50;
     width: 0%;
-    transition: width 0.4s ease;
+    transition: width 0.3s ease;
 }
 
+/* Detailbereich (ein-/ausklappbar) */
+.details {
+    display: none;
+    margin-top: 10px;
+    padding-top: 8px;
+    border-top: 1px solid #eee;
+    font-size: 13px;
+}
+
+.card.open .details {
+    display: block;
+}
+
+.detail-row {
+    display: flex;
+    justify-content: space-between;
+    gap: 8px;
+    margin-bottom: 3px;
+}
+
+.detail-key {
+    font-weight: 600;
+    color: #555;
+}
+
+.detail-value {
+    text-align: right;
+    color: #333;
+}
+
+/* Animation */
 @keyframes fadeIn {
-    from {opacity: 0; transform: translateY(10px);}
-    to {opacity: 1; transform: translateY(0);}
+    from { opacity: 0; transform: translateY(6px); }
+    to   { opacity: 1; transform: translateY(0); }
+}
+
+/* Handy-Optimierung */
+@media (max-width: 600px) {
+    .card {
+        margin: 8px 10px 12px 10px;
+    }
 }
