@@ -1,712 +1,251 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-  <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>Fortschrittsberichte – Übersicht</title>
-  <style>
-    :root {
-      --bg: #f0f2f5;
-      --card-bg: #ffffff;
-      --primary: #d32f2f;
-      --text-main: #222;
-      --text-sub: #555;
-      --border-subtle: #e0e0e0;
-      --tile-low: #ffebee;
-      --tile-mid: #fff8e1;
-      --tile-high: #e8f5e9;
-      --tile-low-border: #c62828;
-      --tile-mid-border: #f9a825;
-      --tile-high-border: #2e7d32;
-    }
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>Chef – Fortschrittsberichte</title>
 
-    * {
-      box-sizing: border-box;
-    }
-
+<style>
     body {
-      margin: 0;
-      padding: 0;
-      font-family: Arial, sans-serif;
-      background: var(--bg);
-      color: var(--text-main);
+        margin: 0;
+        padding: 15px;
+        font-family: Arial, sans-serif;
+        background: #f4f4f4;
     }
-
-    header {
-      background: var(--primary);
-      color: white;
-      padding: 14px 16px;
-      font-size: 20px;
-      font-weight: bold;
-      display: flex;
-      align-items: center;
-      gap: 8px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    h1 {
+        text-align: center;
+        font-size: 26px;
+        margin-bottom: 20px;
+        color: #222;
     }
-
-    header span.icon {
-      font-size: 22px;
-    }
-
-    main {
-      padding: 12px;
-      max-width: 1100px;
-      margin: 0 auto 40px auto;
-    }
-
     .filterBox {
-      background: var(--card-bg);
-      padding: 12px 14px;
-      border-radius: 10px;
-      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
-      margin-bottom: 14px;
-      font-size: 14px;
+        background: white;
+        padding: 12px;
+        border-radius: 10px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
+        margin-bottom: 15px;
     }
-
-    .filterBox-row {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 10px;
-    }
-
-    .filterField {
-      flex: 1 1 180px;
-      min-width: 0;
-    }
-
-    .filterField label {
-      display: block;
-      margin-bottom: 4px;
-      font-weight: 600;
-      font-size: 13px;
-    }
-
-    .filterField select {
-      width: 100%;
-      padding: 9px 10px;
-      font-size: 14px;
-      border-radius: 8px;
-      border: 1px solid #ccc;
-    }
-
-    .hint {
-      font-size: 12px;
-      color: var(--text-sub);
-      margin-top: 6px;
-    }
-
-    .card {
-      background: var(--card-bg);
-      border-radius: 14px;
-      padding: 14px 16px 16px 16px;
-      margin-top: 14px;
-      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
-      animation: fadeIn 0.25s ease;
-    }
-
-    .card-header {
-      display: flex;
-      justify-content: space-between;
-      gap: 10px;
-      margin-bottom: 10px;
-    }
-
-    .card-title {
-      font-size: 17px;
-      font-weight: 700;
-      margin-bottom: 3px;
-    }
-
-    .card-sub {
-      font-size: 13px;
-      color: var(--text-sub);
-    }
-
-    .overall-progress {
-      margin-top: 4px;
-      font-size: 13px;
-      font-weight: 600;
-    }
-
-    .overall-bar {
-      width: 100%;
-      height: 10px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: #ddd;
-      margin-top: 4px;
-    }
-
-    .overall-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: linear-gradient(90deg, #ffb300, #2e7d32);
-      transition: width 0.3s ease;
-    }
-
-    .section-title {
-      margin-top: 14px;
-      margin-bottom: 6px;
-      font-size: 14px;
-      font-weight: 700;
-      color: var(--text-main);
-      border-bottom: 1px solid var(--border-subtle);
-      padding-bottom: 3px;
-    }
-
-    .tile-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
-      gap: 8px;
-      margin-top: 6px;
-    }
-
-    .tile {
-      border-radius: 10px;
-      padding: 6px 8px 8px 8px;
-      font-size: 12px;
-      border: 1px solid var(--border-subtle);
-      background: #fafafa;
-    }
-
-    .tile.low {
-      background: var(--tile-low);
-      border-color: var(--tile-low-border);
-    }
-    .tile.mid {
-      background: var(--tile-mid);
-      border-color: var(--tile-mid-border);
-    }
-    .tile.high {
-      background: var(--tile-high);
-      border-color: var(--tile-high-border);
-    }
-
-    .tile-label {
-      font-weight: 600;
-      margin-bottom: 2px;
-    }
-
-    .tile-value {
-      font-size: 13px;
-      margin-bottom: 2px;
-    }
-
-    .tile-bar {
-      width: 100%;
-      height: 6px;
-      border-radius: 999px;
-      overflow: hidden;
-      background: rgba(0, 0, 0, 0.1);
-    }
-
-    .tile-bar-fill {
-      height: 100%;
-      width: 0%;
-      background: rgba(0, 0, 0, 0.35);
-      transition: width 0.3s ease;
-    }
-
-    .text-block {
-      font-size: 13px;
-      margin-top: 5px;
-    }
-
-    .text-label {
-      font-weight: 600;
-      display: block;
-      margin-bottom: 2px;
-    }
-
-    .text-content {
-      white-space: pre-wrap;
-      color: var(--text-sub);
-    }
-
-    .badge-problem {
-      background: #ffebee;
-      color: #b71c1c;
-      border: 1px solid #ef5350;
-      padding: 6px 8px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-top: 10px;
-    }
-
-    .badge-info {
-      background: #e3f2fd;
-      color: #0d47a1;
-      border: 1px solid #64b5f6;
-      padding: 6px 8px;
-      border-radius: 8px;
-      font-size: 13px;
-      margin-top: 6px;
-    }
-
-    .photo-grid {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 6px;
-      margin-top: 6px;
-    }
-
-    .photo-thumb-wrapper {
-      width: 70px;
-      height: 70px;
-      border-radius: 10px;
-      overflow: hidden;
-      box-shadow: 0 1px 3px rgba(0,0,0,0.3);
-      background: #eee;
-    }
-
-    .photo-thumb {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-      display: block;
-    }
-
-    .no-data {
-      font-size: 13px;
-      text-align: center;
-      color: var(--text-sub);
-      margin-top: 20px;
-    }
-
-    @keyframes fadeIn {
-      from {
-        opacity: 0;
-        transform: translateY(6px);
-      }
-      to {
-        opacity: 1;
-        transform: translateY(0);
-      }
-    }
-
-    @media (max-width: 600px) {
-      main {
+    select {
+        width: 100%;
         padding: 10px;
-      }
-      .card {
-        padding: 12px 12px 14px 12px;
-      }
-      .card-header {
-        flex-direction: column;
-      }
+        margin-top: 5px;
+        font-size: 16px;
+        border-radius: 8px;
+        border: 1px solid #ccc;
     }
-  </style>
+    .card {
+        background: white;
+        padding: 15px;
+        border-radius: 12px;
+        margin-bottom: 15px;
+        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .title {
+        font-size: 20px;
+        font-weight: bold;
+        margin-bottom: 3px;
+    }
+    .subtitle {
+        font-size: 14px;
+        color: #555;
+        margin-bottom: 12px;
+    }
+    .group-title {
+        font-size: 16px;
+        font-weight: bold;
+        margin-top: 12px;
+        margin-bottom: 5px;
+        color: #333;
+        border-left: 4px solid #c20000;
+        padding-left: 8px;
+    }
+    .badge-grid {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+        gap: 8px;
+        margin-bottom: 10px;
+    }
+    .badge {
+        padding: 8px;
+        font-size: 13px;
+        border-radius: 7px;
+        color: white;
+        text-align: center;
+        font-weight: bold;
+    }
+    .red { background: #d9534f; }
+    .yellow { background: #f0ad4e; }
+    .green { background: #5cb85c; }
+
+    .warnbox {
+        background: #ffdddd;
+        padding: 10px;
+        border-left: 5px solid #c20000;
+        margin-top: 10px;
+        border-radius: 5px;
+        color: #700;
+    }
+
+    .photogrid {
+        display: flex;
+        gap: 6px;
+        flex-wrap: wrap;
+        margin-top: 10px;
+    }
+    .photogrid img {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+        cursor: pointer;
+        border: 2px solid #ddd;
+    }
+</style>
 </head>
 <body>
-  <header>
-    <span class="icon">🛠️</span>
-    Fortschrittsberichte
-  </header>
 
-  <main>
-    <div class="filterBox">
-      <div class="filterBox-row">
-        <div class="filterField">
-          <label for="projectFilter">Baustelle auswählen:</label>
-          <select id="projectFilter">
-            <option value="">Alle Baustellen</option>
-          </select>
-        </div>
-        <div class="filterField">
-          <label for="monteurFilter">Monteur / Team auswählen:</label>
-          <select id="monteurFilter">
-            <option value="">Alle Monteure</option>
-          </select>
-        </div>
-      </div>
-      <div class="hint">
-        Tipp: Am Handy Querformat drehen, dann siehst du mehr Kacheln nebeneinander.
-      </div>
-    </div>
+<h1>📊 Chef – Fortschrittsberichte</h1>
 
-    <div id="cards"></div>
-    <div id="noData" class="no-data" style="display:none;">
-      Noch keine Einträge vorhanden.
-    </div>
-  </main>
+<div class="filterBox">
+    <label><strong>Monteur wählen:</strong></label>
+    <select id="monteurFilter"><option value="">Alle</option></select>
 
-  <script>
-    const SHEET_CSV_URL =
-      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+    <label style="margin-top:10px;"><strong>Projekt wählen:</strong></label>
+    <select id="projektFilter"><option value="">Alle</option></select>
+</div>
 
-    function parseCSV(text) {
-      // einfache CSV-Variante – funktioniert, solange keine Kommas in Antworten sind
-      return text
-        .trim()
-        .split(/\r?\n/)
-        .map((row) => row.split(","));
-    }
+<div id="cards"></div>
 
-    function findIndex(headers, needle) {
-      needle = needle.toLowerCase();
-      return headers.findIndex((h) => h.toLowerCase().includes(needle));
-    }
+<script>
+const CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
-    function toNumber(val) {
-      if (!val) return 0;
-      return (
-        parseFloat(
-          val.replace("%", "").replace(",", ".").replace(" ", "")
-        ) || 0
-      );
-    }
+async function loadData() {
+    const res = await fetch(CSV);
+    const text = await res.text();
+    const rows = text.split(/\r?\n/).map(r => r.split(","));
 
-    function getTileClass(value) {
-      if (value <= 0) return "";
-      if (value <= 33) return "low";
-      if (value <= 66) return "mid";
-      return "high";
-    }
+    const headers = rows[0];
+    const data = rows.slice(1).filter(r => r.length > 3);
 
-    function createTile(label, valueStr) {
-      const value = toNumber(valueStr);
-      const tile = document.createElement("div");
-      tile.className = "tile " + getTileClass(value);
+    const idxProjekt = headers.indexOf("Projekt/ Baustelle");
+    const idxDatum = headers.indexOf("Datum");
+    const idxMonteur = headers.indexOf("Monteur / Team");
+    const idxFotos = headers.indexOf("Fotos");
+    const idxProbleme = headers.indexOf("Probleme / Verzögerungen");
 
-      const lbl = document.createElement("div");
-      lbl.className = "tile-label";
-      lbl.textContent = label;
+    const prozentFelder = headers
+        .map((h,i) => h.includes("(%)") ? i : -1)
+        .filter(i => i >= 0);
 
-      const val = document.createElement("div");
-      val.className = "tile-value";
-      val.textContent = valueStr || "-";
+    const monteurSet = new Set();
+    const projektSet = new Set();
 
-      const bar = document.createElement("div");
-      bar.className = "tile-bar";
+    data.forEach(r => {
+        if(r[idxMonteur]) monteurSet.add(r[idxMonteur]);
+        if(r[idxProjekt]) projektSet.add(r[idxProjekt]);
+    });
 
-      const fill = document.createElement("div");
-      fill.className = "tile-bar-fill";
-      fill.style.width = Math.max(0, Math.min(value, 100)) + "%";
-
-      bar.appendChild(fill);
-
-      tile.appendChild(lbl);
-      tile.appendChild(val);
-      tile.appendChild(bar);
-
-      return tile;
-    }
-
-    function renderGroup(card, title, headersList, row, headerMap) {
-      const relevant = headersList.filter((key) => headerMap[key] !== undefined);
-      if (!relevant.length) return;
-
-      const secTitle = document.createElement("div");
-      secTitle.className = "section-title";
-      secTitle.textContent = title;
-      card.appendChild(secTitle);
-
-      const grid = document.createElement("div");
-      grid.className = "tile-grid";
-
-      relevant.forEach((key) => {
-        const idx = headerMap[key];
-        const value = row[idx] || "";
-        const prettyLabel = key.replace(" (%)", "").replace("  ", " ");
-        grid.appendChild(createTile(prettyLabel, value));
-      });
-
-      card.appendChild(grid);
-    }
-
-    function driveLinkToImage(link) {
-      // versucht, aus einem Drive-Link eine direkte Bild-URL zu machen
-      if (!link) return null;
-      const idMatch = link.match(/(?:id=|\/d\/)([a-zA-Z0-9_-]+)/);
-      if (idMatch) {
-        return "https://drive.google.com/uc?export=view&id=" + idMatch[1];
-      }
-      return link; // sonst einfach direkt versuchen
-    }
-
-    async function loadData() {
-      const res = await fetch(SHEET_CSV_URL);
-      const text = await res.text();
-      const rows = parseCSV(text);
-
-      if (!rows.length) return;
-
-      const headers = rows[0];
-      const data = rows.slice(1).filter((r) => r.some((c) => c.trim() !== ""));
-
-      const cardsContainer = document.getElementById("cards");
-      const noData = document.getElementById("noData");
-      const filterMonteur = document.getElementById("monteurFilter");
-      const filterProject = document.getElementById("projectFilter");
-
-      const idxProjekt = findIndex(headers, "projekt/ baustelle");
-      const idxDatum = findIndex(headers, "datum");
-      const idxMonteur = findIndex(headers, "monteur");
-      const idxWoche = findIndex(headers, "woche / zeitraum");
-      const idxAllgAngaben = findIndex(headers, "allgemeine angaben");
-      const idxBeschreibung = findIndex(headers, "beschreibung / details");
-      const idxProbleme = findIndex(headers, "probleme / verzögerungen");
-      const idxKoord = findIndex(headers, "koordination mit anderen gewerken");
-      const idxBestätigung = findIndex(headers, "bestätigung name monteur");
-      const idxFotos = findIndex(headers, "fotos");
-
-      const percentIndexes = headers
-        .map((h, i) => (h.includes("(%)") ? i : -1))
-        .filter((i) => i >= 0);
-
-      const headerMap = {};
-      headers.forEach((h, i) => {
-        headerMap[h.trim()] = i;
-      });
-
-      // Filter-Optionen
-      const monteure = [
-        ...new Set(
-          data
-            .map((r) => (idxMonteur >= 0 ? r[idxMonteur] : ""))
-            .filter(Boolean)
-        ),
-      ].sort();
-
-      monteure.forEach((m) => {
-        const opt = document.createElement("option");
+    monteurSet.forEach(m => {
+        let opt = document.createElement("option");
         opt.value = m;
         opt.textContent = m;
-        filterMonteur.appendChild(opt);
-      });
+        document.getElementById("monteurFilter").appendChild(opt);
+    });
 
-      const projekte = [
-        ...new Set(
-          data
-            .map((r) => (idxProjekt >= 0 ? r[idxProjekt] : ""))
-            .filter(Boolean)
-        ),
-      ].sort();
-
-      projekte.forEach((p) => {
-        const opt = document.createElement("option");
+    projektSet.forEach(p => {
+        let opt = document.createElement("option");
         opt.value = p;
         opt.textContent = p;
-        filterProject.appendChild(opt);
-      });
+        document.getElementById("projektFilter").appendChild(opt);
+    });
 
-      const GROUPS = {
-        "Baustelleneinrichtung & Vorbereitung": [
-          "Baustelleneinrichtung (%)",
-          "Allgemeinkosten (%)",
-        ],
-        Installation: [
-          "Zuleitung & Zählerplätze (%)",
-          "Rohr- und Tragsysteme (%)",
-          "Kabel & Leitungen (%)",
-          "Schalt- und Steckgeräte (%)",
-          "NSP Verteilung (%)",
-          "Demontagen & Montagen (%)",
-          "Kabel einziehen (%)",
-          "Planung / Inbetriebnahme (%)",
-          "Tiefgarage (%)",
-          "Rohinstallation – Decke (%)",
-          "Rohinstallation – Wände (%)",
-        ],
-        Beleuchtung: [
-          "Beleuchtungskörper (%)",
-          "Außenbeleuchtung (%)",
-          "Leuchten (%)",
-        ],
-        "PV-Anlage": ["PV-Anlage (%)"],
-        "Sicherheit & Kommunikation": [
-          "Brandrauchmelder (%)",
-          "Erdung & Blitzschutz (%)",
-          "Kommunikationsanlagen (%)",
-          "Sprechanlage (%)",
-          "Gegensprechanlage (%)",
-          "Antennenanlage (%)",
-        ],
-        Dokumentation: ["Dokumentation / Inbetriebnahme (%)"],
-      };
+    function render() {
+        const mFilter = document.getElementById("monteurFilter").value;
+        const pFilter = document.getElementById("projektFilter").value;
 
-      // Für etwas bessere Sortierung: nach Projekt, dann Datum (Textsortierung reicht erstmal)
-      const sortedData = [...data].sort((a, b) => {
-        const pa = idxProjekt >= 0 ? a[idxProjekt] : "";
-        const pb = idxProjekt >= 0 ? b[idxProjekt] : "";
-        if (pa < pb) return -1;
-        if (pa > pb) return 1;
-        const da = idxDatum >= 0 ? a[idxDatum] : "";
-        const db = idxDatum >= 0 ? b[idxDatum] : "";
-        return da < db ? -1 : da > db ? 1 : 0;
-      });
+        const box = document.getElementById("cards");
+        box.innerHTML = "";
 
-      function render() {
-        cardsContainer.innerHTML = "";
-        let count = 0;
-        const selMonteur = filterMonteur.value;
-        const selProject = filterProject.value;
+        data.forEach(r => {
+            if(mFilter && r[idxMonteur] !== mFilter) return;
+            if(pFilter && r[idxProjekt] !== pFilter) return;
 
-        sortedData.forEach((row) => {
-          if (selMonteur && row[idxMonteur] !== selMonteur) return;
-          if (selProject && row[idxProjekt] !== selProject) return;
+            const card = document.createElement("div");
+            card.className = "card";
 
-          const card = document.createElement("article");
-          card.className = "card";
+            card.innerHTML += `
+                <div class="title">${r[idxProjekt] || "-"}</div>
+                <div class="subtitle">${r[idxDatum]} – ${r[idxMonteur]}</div>
+            `;
 
-          const headerDiv = document.createElement("div");
-          headerDiv.className = "card-header";
+            let gruppen = {
+                "Installation": [],
+                "Beleuchtung": [],
+                "Sicherheit": [],
+                "Sonstiges": []
+            };
 
-          const titleBlock = document.createElement("div");
-          const title = document.createElement("div");
-          title.className = "card-title";
-          title.textContent =
-            (idxProjekt >= 0 && row[idxProjekt]) || "Unbekannte Baustelle";
+            prozentFelder.forEach(i => {
+                const label = headers[i].replace("(%)","");
+                let val = r[i] ? r[i].replace("%","") : 0;
+                val = parseInt(val) || 0;
 
-          const sub = document.createElement("div");
-          sub.className = "card-sub";
-          const datum = idxDatum >= 0 ? row[idxDatum] : "";
-          const monteur = idxMonteur >= 0 ? row[idxMonteur] : "";
-          const woche = idxWoche >= 0 ? row[idxWoche] : "";
-          sub.textContent = [datum, monteur, woche].filter(Boolean).join(" – ");
+                let color = val <= 33 ? "red" : val <= 66 ? "yellow" : "green";
 
-          titleBlock.appendChild(title);
-          titleBlock.appendChild(sub);
-
-          headerDiv.appendChild(titleBlock);
-          card.appendChild(headerDiv);
-
-          // Gesamtfortschritt
-          if (percentIndexes.length) {
-            const values = percentIndexes.map((i) => toNumber(row[i]));
-            const sum = values.reduce((a, b) => a + b, 0);
-            const avg = Math.round(sum / percentIndexes.length) || 0;
-
-            const overallLabel = document.createElement("div");
-            overallLabel.className = "overall-progress";
-            overallLabel.textContent = `Gesamtfortschritt: ${avg}%`;
-
-            const bar = document.createElement("div");
-            bar.className = "overall-bar";
-
-            const fill = document.createElement("div");
-            fill.className = "overall-bar-fill";
-            fill.style.width = Math.max(0, Math.min(avg, 100)) + "%";
-
-            bar.appendChild(fill);
-            card.appendChild(overallLabel);
-            card.appendChild(bar);
-          }
-
-          // Gruppen
-          Object.entries(GROUPS).forEach(([groupTitle, cols]) =>
-            renderGroup(card, groupTitle, cols, row, headerMap)
-          );
-
-          // Allgemeine Angaben
-          if (idxAllgAngaben >= 0 && row[idxAllgAngaben]) {
-            const block = document.createElement("div");
-            block.className = "text-block";
-            block.innerHTML =
-              '<span class="text-label">Allgemeine Angaben:</span>' +
-              `<div class="text-content">${row[idxAllgAngaben]}</div>`;
-            card.appendChild(block);
-          }
-
-          // Beschreibung / Details
-          if (idxBeschreibung >= 0 && row[idxBeschreibung]) {
-            const block = document.createElement("div");
-            block.className = "text-block";
-            block.innerHTML =
-              '<span class="text-label">Beschreibung / Details:</span>' +
-              `<div class="text-content">${row[idxBeschreibung]}</div>`;
-            card.appendChild(block);
-          }
-
-          // Probleme / Verzögerungen
-          if (idxProbleme >= 0 && row[idxProbleme]) {
-            const warn = document.createElement("div");
-            warn.className = "badge-problem";
-            warn.innerHTML =
-              "<strong>⚠ Verzögerungen / Probleme:</strong><br>" +
-              row[idxProbleme];
-            card.appendChild(warn);
-          }
-
-          // Koordination
-          if (idxKoord >= 0 && row[idxKoord]) {
-            const info = document.createElement("div");
-            info.className = "badge-info";
-            info.innerHTML =
-              "<strong>Koordination mit anderen Gewerken:</strong><br>" +
-              row[idxKoord];
-            card.appendChild(info);
-          }
-
-          // Fotos
-          if (idxFotos >= 0 && row[idxFotos]) {
-            const secTitle = document.createElement("div");
-            secTitle.className = "section-title";
-            secTitle.textContent = "Fotos / Nachweise";
-            card.appendChild(secTitle);
-
-            const photoGrid = document.createElement("div");
-            photoGrid.className = "photo-grid";
-
-            const raw = row[idxFotos];
-            const parts = raw.split(/\s+/).filter((p) =>
-              p.startsWith("http")
-            );
-
-            parts.forEach((link) => {
-              const imgSrc = driveLinkToImage(link);
-              const wrapper = document.createElement("a");
-              wrapper.href = link;
-              wrapper.target = "_blank";
-              wrapper.className = "photo-thumb-wrapper";
-
-              const img = document.createElement("img");
-              img.className = "photo-thumb";
-              img.src = imgSrc;
-
-              wrapper.appendChild(img);
-              photoGrid.appendChild(wrapper);
+                if(label.includes("Rohr") || label.includes("Zuleitung") || label.includes("Kabel"))
+                    gruppen.Installation.push({label,val,color});
+                else if(label.includes("Beleucht") || label.includes("PV"))
+                    gruppen.Beleuchtung.push({label,val,color});
+                else if(label.includes("Brand") || label.includes("Sprech"))
+                    gruppen.Sicherheit.push({label,val,color});
+                else
+                    gruppen.Sonstiges.push({label,val,color});
             });
 
-            if (parts.length === 0) {
-              const none = document.createElement("div");
-              none.style.fontSize = "12px";
-              none.style.color = "#777";
-              none.textContent = "Keine Fotos hochgeladen.";
-              card.appendChild(none);
-            } else {
-              card.appendChild(photoGrid);
+            Object.keys(gruppen).forEach(gr => {
+                card.innerHTML += `<div class="group-title">${gr}</div>`;
+                let wrap = document.createElement("div");
+                wrap.className = "badge-grid";
+
+                gruppen[gr].forEach(e => {
+                    let b = document.createElement("div");
+                    b.className = `badge ${e.color}`;
+                    b.textContent = `${e.label.trim()} ${e.val}%`;
+                    wrap.appendChild(b);
+                });
+
+                card.appendChild(wrap);
+            });
+
+            if(r[idxProbleme] && r[idxProbleme].trim() !== "")
+                card.innerHTML += `<div class="warnbox">⚠️ <strong>Probleme:</strong><br>${r[idxProbleme]}</div>`;
+
+            if(r[idxFotos] && r[idxFotos].includes("http")) {
+                const links = r[idxFotos].split(" ").filter(l => l.includes("http"));
+                let pg = document.createElement("div");
+                pg.className = "photogrid";
+
+                links.forEach(l => {
+                    let img = document.createElement("img");
+                    img.src = l.replace("open?", "thumbnail?").trim();
+                    img.onclick = () => window.open(l, "_blank");
+                    pg.appendChild(img);
+                });
+
+                card.appendChild(pg);
             }
-          }
 
-          // Bestätigung Monteur
-          if (idxBestätigung >= 0 && row[idxBestätigung]) {
-            const block = document.createElement("div");
-            block.className = "text-block";
-            block.innerHTML =
-              '<span class="text-label">Bestätigung Monteur:</span>' +
-              `<div class="text-content">${row[idxBestätigung]}</div>`;
-            card.appendChild(block);
-          }
-
-          cardsContainer.appendChild(card);
-          count++;
+            box.appendChild(card);
         });
-
-        noData.style.display = count ? "none" : "block";
-      }
-
-      filterMonteur.addEventListener("change", render);
-      filterProject.addEventListener("change", render);
-      render();
     }
 
-    loadData().catch((err) => {
-      console.error(err);
-      const nd = document.getElementById("noData");
-      nd.textContent = "Fehler beim Laden der Daten.";
-      nd.style.display = "block";
-    });
-  </script>
+    document.getElementById("monteurFilter").onchange = render;
+    document.getElementById("projektFilter").onchange = render;
+
+    render();
+}
+
+loadData();
+</script>
 </body>
 </html>
