@@ -1,187 +1,591 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Fortschritt Übersicht</title>
-
-<style>
-    body {
-        margin: 0;
-        padding: 15px;
-        font-family: Arial, sans-serif;
-        background: #f0f2f5;
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>Fortschritt Übersicht</title>
+  <style>
+    :root {
+      --bg: #f0f2f5;
+      --card-bg: #ffffff;
+      --primary: #d32f2f;
+      --text-main: #222;
+      --text-sub: #555;
+      --border-subtle: #e0e0e0;
+      --tile-low: #ffebee;
+      --tile-mid: #fff8e1;
+      --tile-high: #e8f5e9;
+      --tile-low-border: #c62828;
+      --tile-mid-border: #f9a825;
+      --tile-high-border: #2e7d32;
     }
 
-    h1 {
-        text-align: center;
-        font-size: 22px;
-        font-weight: bold;
-        margin-bottom: 15px;
+    * {
+      box-sizing: border-box;
+    }
+
+    body {
+      margin: 0;
+      padding: 0;
+      font-family: Arial, sans-serif;
+      background: var(--bg);
+      color: var(--text-main);
+    }
+
+    header {
+      background: var(--primary);
+      color: white;
+      padding: 14px 16px;
+      font-size: 20px;
+      font-weight: bold;
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.2);
+    }
+
+    header span.icon {
+      font-size: 22px;
+    }
+
+    main {
+      padding: 12px;
+      max-width: 1100px;
+      margin: 0 auto 40px auto;
     }
 
     .filterBox {
-        background: white;
-        padding: 12px;
-        border-radius: 10px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.1);
-        margin-bottom: 15px;
+      background: var(--card-bg);
+      padding: 12px 14px;
+      border-radius: 10px;
+      box-shadow: 0 1px 4px rgba(0, 0, 0, 0.1);
+      margin-bottom: 14px;
+      font-size: 14px;
     }
 
-    select {
-        width: 100%;
-        padding: 10px;
-        border-radius: 8px;
-        border: 1px solid #ccc;
-        font-size: 16px;
+    .filterBox label {
+      display: block;
+      margin-bottom: 4px;
+      font-weight: 600;
+    }
+
+    .filterBox select {
+      width: 100%;
+      padding: 9px 10px;
+      font-size: 15px;
+      border-radius: 8px;
+      border: 1px solid #ccc;
+    }
+
+    .hint {
+      font-size: 12px;
+      color: var(--text-sub);
+      margin-top: 4px;
     }
 
     .card {
-        background: white;
-        padding: 18px;
-        margin-bottom: 18px;
-        border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+      background: var(--card-bg);
+      border-radius: 14px;
+      padding: 14px 16px 16px 16px;
+      margin-top: 14px;
+      box-shadow: 0 2px 6px rgba(0, 0, 0, 0.15);
+      animation: fadeIn 0.25s ease;
     }
 
-    .title {
-        font-size: 20px;
-        font-weight: bold;
+    .card-header {
+      display: flex;
+      justify-content: space-between;
+      gap: 10px;
+      margin-bottom: 10px;
     }
 
-    .subtitle {
-        font-size: 14px;
-        color: #555;
-        margin-bottom: 10px;
+    .card-title {
+      font-size: 17px;
+      font-weight: 700;
+      margin-bottom: 3px;
     }
 
-    .sectionTitle {
-        margin-top: 15px;
-        font-size: 16px;
-        font-weight: bold;
-        color: #333;
-        border-bottom: 1px solid #ddd;
-        padding-bottom: 4px;
-        margin-bottom: 8px;
+    .card-sub {
+      font-size: 13px;
+      color: var(--text-sub);
     }
 
-    .grid2 {
-        display: grid;
-        grid-template-columns: 1fr 1fr;
-        gap: 8px 16px;
+    .overall-progress {
+      margin-top: 4px;
+      font-size: 13px;
+      font-weight: 600;
     }
 
-    .fieldRow {
-        font-size: 14px;
-        padding: 6px 0;
-        border-bottom: 1px solid #eee;
+    .overall-bar {
+      width: 100%;
+      height: 10px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: #ddd;
+      margin-top: 4px;
     }
 
-    .label {
-        font-weight: bold;
-        color: #444;
+    .overall-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: linear-gradient(90deg, #ffb300, #2e7d32);
+      transition: width 0.3s ease;
     }
 
-</style>
+    .section-title {
+      margin-top: 14px;
+      margin-bottom: 6px;
+      font-size: 14px;
+      font-weight: 700;
+      color: var(--text-main);
+      border-bottom: 1px solid var(--border-subtle);
+      padding-bottom: 3px;
+    }
+
+    .tile-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+      gap: 8px;
+      margin-top: 6px;
+    }
+
+    .tile {
+      border-radius: 10px;
+      padding: 6px 8px 8px 8px;
+      font-size: 12px;
+      border: 1px solid var(--border-subtle);
+      background: #fafafa;
+    }
+
+    .tile.low {
+      background: var(--tile-low);
+      border-color: var(--tile-low-border);
+    }
+    .tile.mid {
+      background: var(--tile-mid);
+      border-color: var(--tile-mid-border);
+    }
+    .tile.high {
+      background: var(--tile-high);
+      border-color: var(--tile-high-border);
+    }
+
+    .tile-label {
+      font-weight: 600;
+      margin-bottom: 2px;
+    }
+
+    .tile-value {
+      font-size: 13px;
+      margin-bottom: 2px;
+    }
+
+    .tile-bar {
+      width: 100%;
+      height: 6px;
+      border-radius: 999px;
+      overflow: hidden;
+      background: rgba(0, 0, 0, 0.1);
+    }
+
+    .tile-bar-fill {
+      height: 100%;
+      width: 0%;
+      background: rgba(0, 0, 0, 0.35);
+      transition: width 0.3s ease;
+    }
+
+    .text-block {
+      font-size: 13px;
+      margin-top: 5px;
+    }
+
+    .text-label {
+      font-weight: 600;
+      display: block;
+      margin-bottom: 2px;
+    }
+
+    .text-content {
+      white-space: pre-wrap;
+      color: var(--text-sub);
+    }
+
+    .badge {
+      display: inline-block;
+      padding: 2px 8px;
+      border-radius: 999px;
+      font-size: 11px;
+      background: #eee;
+      color: #333;
+      margin-top: 4px;
+    }
+
+    .badge-problem {
+      background: #ffebee;
+      color: #b71c1c;
+      border: 1px solid #ef5350;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 10px;
+    }
+
+    .badge-info {
+      background: #e3f2fd;
+      color: #0d47a1;
+      border: 1px solid #64b5f6;
+      padding: 6px 8px;
+      border-radius: 8px;
+      font-size: 13px;
+      margin-top: 6px;
+    }
+
+    .no-data {
+      font-size: 13px;
+      text-align: center;
+      color: var(--text-sub);
+      margin-top: 20px;
+    }
+
+    @keyframes fadeIn {
+      from {
+        opacity: 0;
+        transform: translateY(6px);
+      }
+      to {
+        opacity: 1;
+        transform: translateY(0);
+      }
+    }
+
+    @media (max-width: 600px) {
+      main {
+        padding: 10px;
+      }
+      .card {
+        padding: 12px 12px 14px 12px;
+      }
+      .card-header {
+        flex-direction: column;
+      }
+    }
+  </style>
 </head>
-
 <body>
+  <header>
+    <span class="icon">🛠️</span>
+    Fortschrittsberichte
+  </header>
 
-<h1>📊 Fortschrittsberichte</h1>
-
-<div class="filterBox">
-    <label><strong>Monteur auswählen:</strong></label>
-    <select id="monteurFilter">
+  <main>
+    <div class="filterBox">
+      <label for="monteurFilter">Monteur / Team auswählen:</label>
+      <select id="monteurFilter">
         <option value="">Alle</option>
-    </select>
-</div>
+      </select>
+      <div class="hint">
+        Tipp: Am Handy Querformat drehen, dann siehst du mehr Kacheln nebeneinander.
+      </div>
+    </div>
 
-<div id="cards"></div>
+    <div id="cards"></div>
+    <div id="noData" class="no-data" style="display:none;">
+      Noch keine Einträge vorhanden.
+    </div>
+  </main>
 
-<script>
-const SHEET_CSV_URL = 
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+  <script>
+    const SHEET_CSV_URL =
+      "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
-async function loadData() {
-
-    const res = await fetch(SHEET_CSV_URL);
-    const text = await res.text();
-
-    const rows = text.split(/\r?\n/).map(r => r.split(","));
-    const headers = rows[0];
-    const data = rows.slice(1);
-
-    const monteurIndex = headers.indexOf("Monteur / Team");
-    const cardsBox = document.getElementById("cards");
-    const filter = document.getElementById("monteurFilter");
-
-    // Monteure einfügen
-    const names = [...new Set(data.map(r => r[monteurIndex]).filter(Boolean))];
-    names.forEach(n => {
-        let o = document.createElement("option");
-        o.value = n;
-        o.textContent = n;
-        filter.appendChild(o);
-    });
-
-    function render() {
-        cardsBox.innerHTML = "";
-        const choose = filter.value;
-
-        data.forEach(row => {
-            if (choose && row[monteurIndex] !== choose) return;
-
-            let card = document.createElement("div");
-            card.className = "card";
-
-            const projekt = row[headers.indexOf("Projekt/ Baustelle")] || "";
-            const datum = row[headers.indexOf("Datum")] || "";
-            const woche = row[headers.indexOf("Woche / Zeitraum")] || "";
-            const monteur = row[headers.indexOf("Monteur / Team")] || "";
-
-            card.innerHTML = `
-                <div class="title">${projekt}</div>
-                <div class="subtitle">${datum} – ${monteur} – ${woche}</div>
-
-                <div class="sectionTitle">Leistungsfortschritt</div>
-                <div class="grid2">
-                    ${headers
-                        .filter(h => h.includes("(%)"))
-                        .map(h => `
-                            <div class="fieldRow">
-                                <span class="label">${h.replace("(%)", "")}</span>: 
-                                ${row[headers.indexOf(h)]}%
-                            </div>
-                        `).join("")}
-                </div>
-
-                <div class="sectionTitle">Bautagesberichte</div>
-                <div class="fieldRow">Bautagesbericht abgegeben: ${row[headers.indexOf("Bautagesberichte abgegeben")]}</div>
-                <div class="fieldRow">Fotos beigelegt: ${row[headers.indexOf("Fotos beigelegt")]}</div>
-                <div class="fieldRow">Besonderheiten dokumentiert: ${row[headers.indexOf("Besonderheiten dokumentiert")]}</div>
-
-                <div class="sectionTitle">Regie & Material</div>
-                <div class="fieldRow">Wartezeiten andere Gewerke: ${row[headers.indexOf("Wartezeiten anderer Gewerke")]}</div>
-                <div class="fieldRow">Zusatzarbeiten ohne Auftrag: ${row[headers.indexOf("Zusatzarbeiten ohne Auftrag (Regie)")]}</div>
-                <div class="fieldRow">Unvorhergesehener Mehraufwand: ${row[headers.indexOf("Unvorhergesehener Mehraufwand")]}</div>
-                <div class="fieldRow"><strong>Beschreibung:</strong> ${row[headers.indexOf("Beschreibung / Details")]}</div>
-
-                <div class="sectionTitle">Rückmeldungen</div>
-                <div class="fieldRow"><strong>Probleme:</strong> ${row[headers.indexOf("Probleme / Verzögerungen")]}</div>
-                <div class="fieldRow"><strong>Koordination:</strong> ${row[headers.indexOf("Koordination mit anderen Gewerken")]}</div>
-                <div class="fieldRow"><strong>Bestätigung Monteur:</strong> ${row[headers.indexOf("Bestätigung Name Monteur")]}</div>
-            `;
-
-            cardsBox.appendChild(card);
-        });
+    function parseCSV(text) {
+      // einfache CSV-Variante – reicht hier, solange keine Kommas in Antworten
+      return text
+        .trim()
+        .split(/\r?\n/)
+        .map((row) => row.split(","));
     }
 
-    filter.addEventListener("change", render);
-    render();
-}
+    function findIndex(headers, needle) {
+      needle = needle.toLowerCase();
+      return headers.findIndex((h) => h.toLowerCase().includes(needle));
+    }
 
-loadData();
-</script>
+    function toNumber(val) {
+      if (!val) return 0;
+      return parseFloat(
+        val.replace("%", "").replace(",", ".").replace(" ", "")
+      ) || 0;
+    }
 
+    function getTileClass(value) {
+      if (value <= 0) return "";
+      if (value <= 33) return "low";
+      if (value <= 66) return "mid";
+      return "high";
+    }
+
+    function createTile(label, valueStr) {
+      const value = toNumber(valueStr);
+      const tile = document.createElement("div");
+      tile.className = "tile " + getTileClass(value);
+
+      const lbl = document.createElement("div");
+      lbl.className = "tile-label";
+      lbl.textContent = label;
+
+      const val = document.createElement("div");
+      val.className = "tile-value";
+      val.textContent = valueStr || "-";
+
+      const bar = document.createElement("div");
+      bar.className = "tile-bar";
+
+      const fill = document.createElement("div");
+      fill.className = "tile-bar-fill";
+      fill.style.width = Math.max(0, Math.min(value, 100)) + "%";
+
+      bar.appendChild(fill);
+
+      tile.appendChild(lbl);
+      tile.appendChild(val);
+      tile.appendChild(bar);
+
+      return tile;
+    }
+
+    function renderGroup(card, title, headers, row, headerMap) {
+      const relevant = headers.filter((key) => headerMap[key] !== undefined);
+      if (!relevant.length) return;
+
+      const secTitle = document.createElement("div");
+      secTitle.className = "section-title";
+      secTitle.textContent = title;
+      card.appendChild(secTitle);
+
+      const grid = document.createElement("div");
+      grid.className = "tile-grid";
+
+      relevant.forEach((key) => {
+        const idx = headerMap[key];
+        const value = row[idx] || "";
+        const prettyLabel = key.replace(" (%)", "").replace("  ", " ");
+        grid.appendChild(createTile(prettyLabel, value));
+      });
+
+      card.appendChild(grid);
+    }
+
+    async function loadData() {
+      const res = await fetch(SHEET_CSV_URL);
+      const text = await res.text();
+      const rows = parseCSV(text);
+
+      if (!rows.length) return;
+
+      const headers = rows[0];
+      const data = rows.slice(1).filter((r) => r.some((c) => c.trim() !== ""));
+
+      const cardsContainer = document.getElementById("cards");
+      const noData = document.getElementById("noData");
+      const filter = document.getElementById("monteurFilter");
+
+      const idxProjekt = findIndex(headers, "projekt/ baustelle");
+      const idxDatum = findIndex(headers, "datum");
+      const idxMonteur = findIndex(headers, "monteur");
+      const idxWoche = findIndex(headers, "woche / zeitraum");
+      const idxAllgAngaben = findIndex(headers, "allgemeine angaben");
+      const idxBeschreibung = findIndex(headers, "beschreibung / details");
+      const idxProbleme = findIndex(headers, "probleme / verzögerungen");
+      const idxKoord = findIndex(headers, "koordination mit anderen gewerken");
+      const idxBestätigung = findIndex(headers, "bestätigung name monteur");
+
+      // Map für alle Prozent-Felder (für Durchschnitt)
+      const percentIndexes = headers
+        .map((h, i) => (h.includes("(%)") ? i : -1))
+        .filter((i) => i >= 0);
+
+      // Map: „technische“ Keys -> Index
+      const headerMap = {};
+      headers.forEach((h, i) => {
+        headerMap[h.trim()] = i;
+      });
+
+      // Monteure in Filter
+      const monteure = [
+        ...new Set(data.map((r) => (idxMonteur >= 0 ? r[idxMonteur] : "")).filter(Boolean)),
+      ].sort();
+
+      monteure.forEach((m) => {
+        const opt = document.createElement("option");
+        opt.value = m;
+        opt.textContent = m;
+        filter.appendChild(opt);
+      });
+
+      const GROUPS = {
+        "Baustelleneinrichtung & Vorbereitung": [
+          "Baustelleneinrichtung (%)",
+          "Allgemeinkosten (%)",
+        ],
+        "Installation": [
+          "Zuleitung & Zählerplätze (%)",
+          "Rohr- und Tragsysteme (%)",
+          "Kabel & Leitungen (%)",
+          "Schalt- und Steckgeräte (%)",
+          "NSP Verteilung (%)",
+          "Demontagen & Montagen (%)",
+          "Kabel einziehen (%)",
+          "Planung / Inbetriebnahme (%)",
+          "Tiefgarage (%)",
+          "Rohinstallation – Decke (%)",
+          "Rohinstallation – Wände (%)",
+        ],
+        "Beleuchtung": [
+          "Beleuchtungskörper (%)",
+          "Außenbeleuchtung (%)",
+          "Leuchten (%)",
+        ],
+        "PV-Anlage": ["PV-Anlage (%)"],
+        "Sicherheit & Kommunikation": [
+          "Brandrauchmelder (%)",
+          "Erdung & Blitzschutz (%)",
+          "Kommunikationsanlagen (%)",
+          "Sprechanlage (%)",
+          "Gegensprechanlage (%)",
+          "Antennenanlage (%)",
+        ],
+        "Dokumentation": ["Dokumentation / Inbetriebnahme (%)"],
+      };
+
+      function render() {
+        cardsContainer.innerHTML = "";
+        let count = 0;
+        const selectedMonteur = filter.value;
+
+        data.forEach((row) => {
+          if (selectedMonteur && row[idxMonteur] !== selectedMonteur) return;
+
+          const card = document.createElement("article");
+          card.className = "card";
+
+          const headerDiv = document.createElement("div");
+          headerDiv.className = "card-header";
+
+          const titleBlock = document.createElement("div");
+          const title = document.createElement("div");
+          title.className = "card-title";
+          title.textContent =
+            (idxProjekt >= 0 && row[idxProjekt]) || "Unbekannte Baustelle";
+
+          const sub = document.createElement("div");
+          sub.className = "card-sub";
+          const datum = idxDatum >= 0 ? row[idxDatum] : "";
+          const monteur = idxMonteur >= 0 ? row[idxMonteur] : "";
+          const woche = idxWoche >= 0 ? row[idxWoche] : "";
+          sub.textContent = [datum, monteur, woche].filter(Boolean).join(" – ");
+
+          titleBlock.appendChild(title);
+          titleBlock.appendChild(sub);
+
+          headerDiv.appendChild(titleBlock);
+          card.appendChild(headerDiv);
+
+          // Gesamt-Fortschritt
+          if (percentIndexes.length) {
+            const values = percentIndexes.map((i) => toNumber(row[i]));
+            const sum = values.reduce((a, b) => a + b, 0);
+            const avg = Math.round(sum / percentIndexes.length) || 0;
+
+            const overallLabel = document.createElement("div");
+            overallLabel.className = "overall-progress";
+            overallLabel.textContent = `Gesamtfortschritt: ${avg}%`;
+
+            const bar = document.createElement("div");
+            bar.className = "overall-bar";
+
+            const fill = document.createElement("div");
+            fill.className = "overall-bar-fill";
+            fill.style.width = Math.max(0, Math.min(avg, 100)) + "%";
+
+            bar.appendChild(fill);
+            card.appendChild(overallLabel);
+            card.appendChild(bar);
+          }
+
+          // Gruppen rendern
+          Object.entries(GROUPS).forEach(([groupTitle, cols]) =>
+            renderGroup(card, groupTitle, cols, row, headerMap)
+          );
+
+          // Allgemeine Angaben
+          if (idxAllgAngaben >= 0 && row[idxAllgAngaben]) {
+            const block = document.createElement("div");
+            block.className = "text-block";
+            block.innerHTML =
+              '<span class="text-label">Allgemeine Angaben:</span>' +
+              `<div class="text-content">${row[idxAllgAngaben]}</div>`;
+            card.appendChild(block);
+          }
+
+          // Beschreibung / Details
+          if (idxBeschreibung >= 0 && row[idxBeschreibung]) {
+            const block = document.createElement("div");
+            block.className = "text-block";
+            block.innerHTML =
+              '<span class="text-label">Beschreibung / Details:</span>' +
+              `<div class="text-content">${row[idxBeschreibung]}</div>`;
+            card.appendChild(block);
+          }
+
+          // Probleme / Verzögerungen
+          if (idxProbleme >= 0 && row[idxProbleme]) {
+            const warn = document.createElement("div");
+            warn.className = "badge-problem";
+            warn.innerHTML =
+              "<strong>⚠ Verzögerungen / Probleme:</strong><br>" +
+              row[idxProbleme];
+            card.appendChild(warn);
+          }
+
+          // Koordination
+          if (idxKoord >= 0 && row[idxKoord]) {
+            const info = document.createElement("div");
+            info.className = "badge-info";
+            info.innerHTML =
+              "<strong>Koordination mit anderen Gewerken:</strong><br>" +
+              row[idxKoord];
+            card.appendChild(info);
+          }
+
+          // Bestätigung Monteur
+          if (idxBestätigung >= 0 && row[idxBestätigung]) {
+            const block = document.createElement("div");
+            block.className = "text-block";
+            block.innerHTML =
+              '<span class="text-label">Bestätigung Monteur:</span>' +
+              `<div class="text-content">${row[idxBestätigung]}</div>`;
+            card.appendChild(block);
+          }
+
+          cardsContainer.appendChild(card);
+          count++;
+        });
+
+        noData.style.display = count ? "none" : "block";
+      }
+
+      filter.addEventListener("change", render);
+      render();
+    }
+
+    loadData().catch((err) => {
+      console.error(err);
+      document.getElementById("noData").textContent =
+        "Fehler beim Laden der Daten.";
+      document.getElementById("noData").style.display = "block";
+    });
+  </script>
 </body>
 </html>
