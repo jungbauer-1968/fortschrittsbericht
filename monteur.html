@@ -86,6 +86,13 @@
         margin-top: 5px;
         border: 1px solid #888;
     }
+    .pill {
+        padding: 3px 8px;
+        border-radius: 999px;
+        background: #eee;
+        font-size: 12px;
+        margin-right: 4px;
+    }
 </style>
 </head>
 <body>
@@ -102,20 +109,43 @@
 <div id="results"></div>
 
 <script>
+// CSV-URL aus deinem Google Sheet (Antworten)
 const CSV_URL =
-"https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2ZQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
-// Hilfsfunktion zum CSV parsen
+// --- CSV grob parsen (reicht für dein Setup) ---
 function parseCSV(text) {
     const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+    if (lines.length === 0) return { headers: [], rows: [] };
+
     const headers = lines[0].split(",").map(h => h.trim());
-    const rows = lines.slice(1).map(l => {
-        const values = l.split(",");
-        let obj = {};
-        headers.forEach((h, i) => obj[h] = values[i] ? values[i].trim() : "");
+    const rows = lines.slice(1).map(line => {
+        const parts = line.split(",");
+        const obj = {};
+        headers.forEach((h, i) => {
+            obj[h] = (parts[i] || "").trim();
+        });
         return obj;
     });
     return { headers, rows };
+}
+
+// dd.mm.yyyy -> Date
+function parseDate(d) {
+    if (!d) return new Date(0);
+    const parts = d.split(".");
+    if (parts.length !== 3) return new Date(0);
+    const [day, month, year] = parts.map(x => parseInt(x, 10));
+    if (!day || !month || !year) return new Date(0);
+    return new Date(year, month - 1, day);
+}
+
+// Spalte anhand Teiltext finden (robust gegen Leerzeichen / Groß-Klein)
+function findColumn(headers, keyword) {
+    const key = keyword.toLowerCase();
+    return headers.find(h =>
+        h.toLowerCase().replace(/\s+/g, "").includes(key)
+    );
 }
 
 async function searchEntries() {
@@ -130,43 +160,54 @@ async function searchEntries() {
         return;
     }
 
+    results.innerHTML = "Lade Daten…";
+
     const res = await fetch(CSV_URL);
     const text = await res.text();
-
     const { headers, rows } = parseCSV(text);
 
-    // Monteur-Spalte finden (egal wie sie genau heißt)
-    const monteurKey = headers.find(h => h.toLowerCase().includes("monteur"));
-    if (!monteurKey) {
-        errorBox.innerText = "Fehler: Monteur-Spalte nicht gefunden.";
+    if (headers.length === 0) {
+        errorBox.innerText = "Keine Daten gefunden.";
+        results.innerHTML = "";
         return;
     }
 
-    // Projekte-Spalte suchen
-    const projektKey = headers.find(h => h.toLowerCase().includes("projekt"));
+    // wichtige Spalten robust bestimmen
+    const monteurCol   = findColumn(headers, "monteur");
+    const projektCol   = findColumn(headers, "projekt");
+    const datumCol     = findColumn(headers, "datum");
+    const wocheCol     = findColumn(headers, "woche");
+    const fotosCol     = findColumn(headers, "fotos");
+    const beschrCol    = findColumn(headers, "allgemeineangaben") || findColumn(headers, "beschreibung");
+    const probCol      = findColumn(headers, "probleme");
+    const koordCol     = findColumn(headers, "koordination");
 
-    // Datum-Spalte
-    const datumKey = headers.find(h => h.toLowerCase().includes("datum"));
+    if (!monteurCol) {
+        errorBox.innerText = "Fehler: Monteur-Spalte nicht gefunden.";
+        results.innerHTML = "";
+        return;
+    }
 
+    // Nur Zeilen für diesen Monteur
     const matches = rows.filter(r =>
-        r[monteurKey]?.toLowerCase().trim() === name
+        (r[monteurCol] || "").trim().toLowerCase() === name
     );
 
     if (matches.length === 0) {
         errorBox.innerText =
             "Keine Einträge gefunden. Schreib deinen Nachnamen genau wie im Formular.";
+        results.innerHTML = "";
         return;
     }
 
-    // Nur das neueste pro Baustelle
+    // pro Baustelle den letzten Eintrag ermitteln
     const latestPerProject = {};
-
     matches.forEach(entry => {
-        const proj = entry[projektKey] || "Unbekannt";
-        const dateValue = new Date(entry[datumKey] || "2000-01-01");
+        const proj = (projektCol && entry[projektCol]) ? entry[projektCol] : "Unbekannt";
+        const dateVal = parseDate(datumCol ? entry[datumCol] : "");
 
         if (!latestPerProject[proj] ||
-            dateValue > new Date(latestPerProject[proj][datumKey])) {
+            dateVal > parseDate(latestPerProject[proj][datumCol])) {
             latestPerProject[proj] = entry;
         }
     });
@@ -175,53 +216,60 @@ async function searchEntries() {
 
     let out = "<h2>🔧 Deine letzten Fortschritte</h2>";
 
-    for (const proj in latestPerProject) {
+    Object.keys(latestPerProject).forEach(proj => {
         const e = latestPerProject[proj];
 
-        out += `
-            <div class="card">
-                <div class="title">${proj}</div>
-                <div class="subtitle">${e[datumKey]} – ${e[monteurKey]}</div>
-                <div><strong>Woche:</strong> ${e["Woche / Zeitraum"] || "-"}</div>
+        out += `<div class="card">`;
 
-                <div class="section-title">Fortschritt:</div>
-        `;
+        // Titel
+        out += `<div class="title">${proj}</div>`;
+        const dat = datumCol ? (e[datumCol] || "-") : "-";
+        const wk  = wocheCol ? (e[wocheCol] || "-") : "-";
+        out += `<div class="subtitle">${dat} – Woche: ${wk}</div>`;
 
-        // Alle Prozent-Spalten auflisten
+        out += `<div class="pill">Monteur: ${(e[monteurCol] || "-")}</div>`;
+
+        // Fortschritt-Section
+        out += `<div class="section-title">Fortschritt:</div>`;
         headers.forEach(h => {
             if (h.includes("(%)")) {
-                out += `<div>${h.replace("(%)", "")}: <strong>${e[h] || "0"}%</strong></div>`;
+                const label = h.replace("(%)", "").trim();
+                const val   = e[h] || "0 %";
+                out += `<div>${label}: <strong>${val}</strong></div>`;
             }
         });
 
-        // Beschreibung
-        if (e["Beschreibung / Details"]) {
-            out += `
-                <div class="section-title">Beschreibung:</div>
-                <div>${e["Beschreibung / Details"]}</div>
-            `;
+        // Beschreibung / Allgemeine Angaben
+        if (beschrCol && e[beschrCol]) {
+            out += `<div class="section-title">Beschreibung / Allgemeine Angaben:</div>`;
+            out += `<div>${e[beschrCol]}</div>`;
         }
 
         // Probleme
-        if (e["Probleme / Verzögerungen"]) {
-            out += `
-                <div class="section-title">Probleme:</div>
-                <div>${e["Probleme / Verzögerungen"]}</div>
-            `;
+        if (probCol && e[probCol]) {
+            out += `<div class="section-title">⚠️ Probleme / Verzögerungen:</div>`;
+            out += `<div>${e[probCol]}</div>`;
+        }
+
+        // Koordination
+        if (koordCol && e[koordCol]) {
+            out += `<div class="section-title">Koordination mit anderen Gewerken:</div>`;
+            out += `<div>${e[koordCol]}</div>`;
         }
 
         // Fotos
-        if (e["Fotos"] && e["Fotos"].includes("http")) {
-            const links = e["Fotos"].split(" ").filter(l => l.includes("http"));
-
+        if (fotosCol && e[fotosCol] && e[fotosCol].includes("http")) {
             out += `<div class="section-title">Fotos:</div>`;
+            const links = e[fotosCol].split(/\s+/).filter(l => l.startsWith("http"));
             links.forEach(link => {
-                out += `<a href="${link}" target="_blank"><img class="photo-thumb" src="${link}"></a>`;
+                out += `<a href="${link}" target="_blank">
+                            <img class="photo-thumb" src="${link}" alt="Foto">
+                        </a>`;
             });
         }
 
-        out += `</div>`;
-    }
+        out += `</div>`; // card
+    });
 
     results.innerHTML = out;
 }
