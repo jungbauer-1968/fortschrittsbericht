@@ -1,9 +1,9 @@
 <!DOCTYPE html>
 <html lang="de">
 <head>
-<meta charset="UTF-8">
-<meta name="viewport" content="width=device-width, initial-scale=1">
-<title>Monteur – Fortschritt</title>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Fortschritt – Monteur</title>
 
 <style>
     body {
@@ -18,12 +18,15 @@
         font-size: 24px;
     }
     .inputBox {
-        background: white;
+        background: #fff;
         padding: 15px;
         border-radius: 12px;
         max-width: 450px;
         margin: 0 auto 20px auto;
         box-shadow: 0 2px 6px rgba(0,0,0,0.15);
+    }
+    .inputBox label {
+        font-weight: bold;
     }
     input {
         width: 100%;
@@ -32,6 +35,7 @@
         border-radius: 8px;
         border: 1px solid #ccc;
         margin-top: 10px;
+        box-sizing: border-box;
     }
     button {
         width: 100%;
@@ -40,31 +44,34 @@
         background: #007bff;
         border: none;
         border-radius: 8px;
-        color: white;
+        color: #fff;
         font-size: 18px;
         cursor: pointer;
     }
     button:hover {
         background: #005fcc;
     }
+    #result h2 {
+        margin-top: 0;
+        margin-bottom: 12px;
+    }
     .card {
-        background: white;
+        background: #fff;
         padding: 15px;
         border-radius: 12px;
-        box-shadow: 0 2px 6px rgba(0,0,0,0.20);
+        box-shadow: 0 2px 6px rgba(0,0,0,0.2);
         margin-bottom: 15px;
     }
     .title {
         font-size: 20px;
         font-weight: bold;
-        margin-bottom: 5px;
+        margin-bottom: 4px;
     }
     .subtitle {
         font-size: 14px;
         color: #777;
         margin-bottom: 10px;
     }
-
     .badge-grid {
         display: grid;
         grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
@@ -77,12 +84,11 @@
         border-radius: 7px;
         text-align: center;
         font-weight: bold;
-        color: white;
+        color: #fff;
     }
     .red { background: #d9534f; }
     .yellow { background: #f0ad4e; }
     .green { background: #5cb85c; }
-
     .warnbox {
         background: #ffdddd;
         border-left: 5px solid #cc0000;
@@ -90,8 +96,8 @@
         border-radius: 5px;
         margin-top: 10px;
         color: #700;
+        font-size: 14px;
     }
-
     .photogrid {
         display: flex;
         flex-wrap: wrap;
@@ -106,6 +112,11 @@
         border: 2px solid #ddd;
         cursor: pointer;
     }
+    .hint {
+        font-size: 13px;
+        color: #555;
+        margin-top: 6px;
+    }
 </style>
 </head>
 
@@ -114,128 +125,173 @@
 <h1>👷 Fortschritt – Monteur</h1>
 
 <div id="inputSection" class="inputBox">
-    <label><strong>Bitte Nachnamen eingeben:</strong></label>
-    <input id="nameInput" type="text" placeholder="z.B. Haindl">
+    <label for="nameInput">Bitte Nachnamen eingeben:</label>
+    <input id="nameInput" type="text" placeholder="z.B. Haindl" />
     <button onclick="start()">Weiter</button>
+    <div class="hint">
+        Tipp: Nur Nachname eintragen (z.B. <strong>Fazlic</strong>, <strong>Alex</strong>).
+        Groß/Klein ist egal.
+    </div>
 </div>
 
 <div id="result"></div>
 
 <script>
-const CSV = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+// CSV-Link aus deinem Google Sheet
+const CSV =
+  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
-async function start() {
-    let name = document.getElementById("nameInput").value.trim().toLowerCase();
+let SHEET_HEADERS = [];
+let SHEET_ROWS = [];
+let INDEXES = {};
 
-    if(name.length < 2){
-        alert("Bitte Nachnamen eingeben!");
-        return;
-    }
-
-    document.getElementById("inputSection").style.display = "none";
-    loadMonteur(name);
+function normalize(str) {
+  return (str || "").toString().trim().toLowerCase();
 }
 
-async function loadMonteur(name) {
-    const res = await fetch(CSV);
-    const text = await res.text();
-    const rows = text.split(/\r?\n/).map(r => r.split(","));
+async function loadSheetIfNeeded() {
+  if (SHEET_ROWS.length > 0) return;
 
-    const headers = rows[0];
-    const data = rows.slice(1);
+  const res = await fetch(CSV);
+  const text = await res.text();
+  const rows = text.split(/\r?\n/).map(r => r.split(","));
 
-    const idxProjekt = headers.indexOf("Projekt/ Baustelle");
-    const idxDatum = headers.indexOf("Datum");
-    const idxMonteur = headers.indexOf("Monteur / Team");
-    const idxFotos = headers.indexOf("Fotos");
-    const idxProbleme = headers.indexOf("Probleme / Verzögerungen");
+  SHEET_HEADERS = rows[0];
+  SHEET_ROWS = rows.slice(1).filter(r => r.some(v => v && v.trim() !== ""));
 
-    const prozentFelder = headers
-        .map((h,i) => h.includes("(%)") ? i : -1)
-        .filter(i => i >= 0);
+  INDEXES.projekt = SHEET_HEADERS.indexOf("Projekt/ Baustelle");
+  INDEXES.datum = SHEET_HEADERS.indexOf("Datum");
+  INDEXES.monteur = SHEET_HEADERS.indexOf("Monteur / Team");
+  INDEXES.fotos = SHEET_HEADERS.indexOf("Fotos");
+  INDEXES.probleme = SHEET_HEADERS.indexOf("Probleme / Verzögerungen");
 
-    const result = document.getElementById("result");
-    result.innerHTML = "<h2>⛑ Deine Baustellen</h2>";
+  INDEXES.prozent = SHEET_HEADERS
+    .map((h, i) => (h.includes("(%)") ? i : -1))
+    .filter(i => i >= 0);
+}
 
-    let eintraege = data.filter(r => 
-        r[idxMonteur] && 
-        r[idxMonteur].toLowerCase().includes(name)
-    );
+async function start() {
+  const input = document.getElementById("nameInput").value;
+  const cleanInput = normalize(input);
 
-    if(eintraege.length === 0){
-        result.innerHTML = "<p>Keine Einträge gefunden. Schreib deinen Namen genau wie im Bericht.</p>";
-        return;
+  if (!cleanInput || cleanInput.length < 2) {
+    alert("Bitte deinen Nachnamen eingeben (mindestens 2 Buchstaben).");
+    return;
+  }
+
+  document.getElementById("inputSection").style.display = "none";
+  await loadSheetIfNeeded();
+  renderForMonteur(cleanInput);
+}
+
+function renderForMonteur(cleanName) {
+  const result = document.getElementById("result");
+  result.innerHTML = "<h2>⛑ Deine Baustellen</h2>";
+
+  const idxM = INDEXES.monteur;
+  if (idxM < 0) {
+    result.innerHTML += "<p>Fehler: Spalte 'Monteur / Team' nicht gefunden.</p>";
+    return;
+  }
+
+  // alle Einträge dieses Monteurs (fehlertolerant)
+  const matches = SHEET_ROWS.filter(row => {
+    const monteurRaw = row[idxM];
+    const monteurNorm = normalize(monteurRaw);
+    return monteurNorm.includes(cleanName);
+  });
+
+  if (matches.length === 0) {
+    result.innerHTML +=
+      "<p>Keine Einträge gefunden. Schau, ob dein Nachname im Formular gleich geschrieben ist.</p>";
+    return;
+  }
+
+  // nach Projekt gruppieren
+  const idxP = INDEXES.projekt;
+  const idxD = INDEXES.datum;
+  const idxF = INDEXES.fotos;
+  const idxProb = INDEXES.probleme;
+  const percentIdx = INDEXES.prozent || [];
+
+  const projMap = {};
+  matches.forEach(row => {
+    const proj = (idxP >= 0 && row[idxP]) || "Ohne Projekt";
+    if (!projMap[proj]) projMap[proj] = [];
+    projMap[proj].push(row);
+  });
+
+  Object.keys(projMap).forEach(projekt => {
+    const list = projMap[projekt];
+
+    // nach Datum sortieren (neuester zuerst)
+    list.sort((a, b) => {
+      const da = idxD >= 0 ? new Date(a[idxD]) : new Date(0);
+      const db = idxD >= 0 ? new Date(b[idxD]) : new Date(0);
+      return db - da;
+    });
+
+    const row = list[0]; // letzter Eintrag
+
+    const card = document.createElement("div");
+    card.className = "card";
+
+    const datum = idxD >= 0 ? row[idxD] : "";
+    const monteur = idxM >= 0 ? row[idxM] : "";
+
+    card.innerHTML += `
+      <div class="title">${projekt}</div>
+      <div class="subtitle">${datum} – ${monteur}</div>
+    `;
+
+    // Prozent-Badges
+    const grid = document.createElement("div");
+    grid.className = "badge-grid";
+
+    percentIdx.forEach(i => {
+      const label = SHEET_HEADERS[i].replace("(%)", "");
+      let val = parseInt((row[i] || "0").replace("%", ""), 10);
+      if (isNaN(val)) val = 0;
+
+      let color = val <= 33 ? "red" : val <= 66 ? "yellow" : "green";
+
+      const b = document.createElement("div");
+      b.className = `badge ${color}`;
+      b.textContent = `${label.trim()} ${val}%`;
+      grid.appendChild(b);
+    });
+
+    card.appendChild(grid);
+
+    // Probleme
+    if (idxProb >= 0 && row[idxProb] && row[idxProb].trim() !== "") {
+      const warn = document.createElement("div");
+      warn.className = "warnbox";
+      warn.innerHTML =
+        "⚠️ <strong>Probleme / Verzögerungen:</strong><br>" + row[idxProb];
+      card.appendChild(warn);
     }
 
-    // Nach Baustelle gruppieren
-    let gruppiert = {};
-    eintraege.forEach(r => {
-        let p = r[idxProjekt] || "Ohne Projekt";
-        if(!gruppiert[p]) gruppiert[p] = [];
-        gruppiert[p].push(r);
-    });
+    // Fotos
+    if (idxF >= 0 && row[idxF] && row[idxF].includes("http")) {
+      const links = row[idxF].split(" ").filter(l => l.includes("http"));
+      if (links.length > 0) {
+        const pg = document.createElement("div");
+        pg.className = "photogrid";
 
-    // Pro Baustelle: letzter Eintrag
-    Object.keys(gruppiert).forEach(projekt => {
-
-        let liste = gruppiert[projekt];
-        liste.sort((a,b) => new Date(b[idxDatum]) - new Date(a[idxDatum]));
-        let r = liste[0]; // letzter Eintrag
-
-        let card = document.createElement("div");
-        card.className = "card";
-
-        card.innerHTML += `
-            <div class="title">${projekt}</div>
-            <div class="subtitle">${r[idxDatum]} – ${r[idxMonteur]}</div>
-        `;
-
-        // Prozentkacheln
-        let grid = document.createElement("div");
-        grid.className = "badge-grid";
-
-        prozentFelder.forEach(i => {
-            let label = headers[i].replace("(%)","");
-            let val = parseInt(r[i] || "0");
-
-            let color = val <= 33 ? "red" : val <= 66 ? "yellow" : "green";
-
-            let b = document.createElement("div");
-            b.className = `badge ${color}`;
-            b.textContent = `${label.trim()} ${val}%`;
-
-            grid.appendChild(b);
+        links.forEach(link => {
+          const img = document.createElement("img");
+          img.src = link.replace("open?", "thumbnail?");
+          img.onclick = () => window.open(link, "_blank");
+          pg.appendChild(img);
         });
 
-        card.appendChild(grid);
+        card.appendChild(pg);
+      }
+    }
 
-        // Probleme
-        if(r[idxProbleme] && r[idxProbleme].trim() !== ""){
-            card.innerHTML += `
-                <div class="warnbox">
-                    ⚠️ <strong>Probleme:</strong><br>${r[idxProbleme]}
-                </div>
-            `;
-        }
-
-        // Fotos
-        if(r[idxFotos] && r[idxFotos].includes("http")){
-            const links = r[idxFotos].split(" ").filter(l => l.includes("http"));
-            let pg = document.createElement("div");
-            pg.className = "photogrid";
-
-            links.forEach(link => {
-                let img = document.createElement("img");
-                img.src = link.replace("open?", "thumbnail?");
-                img.onclick = () => window.open(link, "_blank");
-                pg.appendChild(img);
-            });
-
-            card.appendChild(pg);
-        }
-
-        result.appendChild(card);
-    });
+    result.appendChild(card);
+  });
 }
 </script>
 </body>
