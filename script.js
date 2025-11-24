@@ -1,70 +1,93 @@
-// URL zu deinem veröffentlichten Google Sheet (CSV Export)
-const CSV_URL =
-  "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+// ==== CONFIG ====
+const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
 
-// DOM
-const inputName = document.getElementById("workerName");
-const btnWeiter = document.getElementById("goBtn");
-const resultBox = document.getElementById("result");
 
-// Nutzer klickt WEITER
-btnWeiter.addEventListener("click", () => {
-  const name = inputName.value.trim();
-  if (name.length < 2) {
-    alert("Bitte deinen Nachnamen eingeben.");
-    return;
-  }
-  loadCsv(name);
-});
+// ==== CSV LADEN ====
+async function loadCSV(url) {
+    const res = await fetch(url);
+    const text = await res.text();
+    return parseCSV(text);
+}
 
-// CSV LADEN + FILTER
-async function loadCsv(name) {
-  try {
-    const res = await fetch(CSV_URL);
-    const csv = await res.text();
 
-    const rows = csv.split("\n").map((r) => r.split(","));
-    const headers = rows[0];
+// ==== CSV PARSEN ====
+function parseCSV(text) {
+    const rows = text.split(/\r?\n/).map(r => r.split(","));
+    const headers = rows[0].map(h => h.trim());
+    const data = rows.slice(1).map(r => {
+        const obj = {};
+        r.forEach((val, i) => obj[headers[i]] = val.trim());
+        return obj;
+    });
+    return { headers, data };
+}
 
-    // *** WICHTIG: GENAUE SPALTENNAMEN ***
-    const idxMonteur = headers.indexOf("Monteur / Team");
-    const idxProjekt = headers.indexOf("Projekt/ Baustelle");
-    const idxDatum = headers.indexOf("Datum");
 
-    if (idxMonteur === -1) {
-      resultBox.innerHTML =
-        "<h3 style='color:red'>Fehler: Spalte „Monteur / Team“ nicht gefunden!</h3>";
-      return;
+// ==== FLEXIBLE SPALTENSUCHE ====
+function findColumn(headers, keywords) {
+    keywords = keywords.map(k => k.toLowerCase());
+    return headers.find(h =>
+        keywords.some(kw => h.toLowerCase().includes(kw))
+    );
+}
+
+
+// ==== START – HAUPTLOGIK ====
+async function startApp() {
+    const { headers, data } = await loadCSV(CSV_URL);
+
+    // ---- richtige Monteur-Spalte finden ----
+    const monteurColumn = findColumn(headers, ["monteur", "team", "monteur / team"]);
+
+    if (!monteurColumn) {
+        document.getElementById("output").innerHTML =
+            "<h2>❌ Fehler: Spalte 'Monteur / Team' nicht gefunden!</h2>";
+        return;
     }
 
-    // Filtern
-    const eintraege = rows.slice(1).filter((r) =>
-      r[idxMonteur].toLowerCase().includes(name.toLowerCase())
+    // ---- Nachname aus URL holen ----
+    const urlParams = new URLSearchParams(window.location.search);
+    const name = (urlParams.get("name") || "").trim().toLowerCase();
+
+    if (!name) {
+        document.getElementById("output").innerHTML = "<h3>Kein Name angegeben.</h3>";
+        return;
+    }
+
+    // ---- Datensätze filtern ----
+    const entries = data.filter(r =>
+        r[monteurColumn] && r[monteurColumn].trim().toLowerCase() === name
     );
 
-    if (eintraege.length === 0) {
-      resultBox.innerHTML =
-        "<p>Keine Einträge gefunden. Schreib deinen Namen genau wie im Bericht.</p>";
-      return;
+    // ---- Ausgabe ----
+    if (entries.length === 0) {
+        document.getElementById("output").innerHTML =
+            "<h3>Keine Einträge gefunden. Schreib deinen Namen GENAU wie im Formular.</h3>";
+        return;
     }
 
-    // Ausgabe bauen
-    let html = "<h2>👷 Deine Baustellen</h2>";
+    // ==== KARTEN BAUEN ====
+    let html = `<h2>🔧 Deine Baustellen</h2>`;
 
-    for (const r of eintraege) {
-      html += `
-        <div class="card">
-            <h3>${r[idxProjekt] || "Unbekannt"}</h3>
-            <p><b>Datum:</b> ${r[idxDatum]}</p>
-            <p><b>Monteur:</b> ${r[idxMonteur]}</p>
-        </div>
-      `;
-    }
+    entries.forEach(e => {
+        html += `
+            <div class="entry-card">
+                <h3>${e["Projekt/ Baustelle"] || "Unbekannt"}</h3>
+                <p><b>Datum:</b> ${e["Datum"] || "-"}</p>
+                <p><b>Woche:</b> ${e["Woche / Zeitraum"] || "-"}</p>
+                <hr>
+                <p><b>Fortschritt:</b></p>
+                <p>${Object.entries(e).map(([k, v]) => {
+                    if (k.includes("%")) return `${k}: <b>${v}</b>`;
+                    return "";
+                }).join("<br>")}</p>
+            </div>
+        `;
+    });
 
-    resultBox.innerHTML = html;
-  } catch (err) {
-    resultBox.innerHTML =
-      "<p style='color:red'>Fehler beim Laden des Fortschritts.</p>";
-    console.error(err);
-  }
+    document.getElementById("output").innerHTML = html;
 }
+
+
+// ==== LOS GEHT'S ====
+startApp();
