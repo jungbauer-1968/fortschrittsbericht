@@ -71,6 +71,21 @@
         color: #666;
         margin-bottom: 10px;
     }
+    .section-title {
+        margin-top: 10px;
+        font-weight: bold;
+        font-size: 15px;
+        text-decoration: underline;
+    }
+    .photo-thumb {
+        width: 80px;
+        height: 80px;
+        object-fit: cover;
+        border-radius: 6px;
+        margin-right: 5px;
+        margin-top: 5px;
+        border: 1px solid #888;
+    }
 </style>
 </head>
 <body>
@@ -87,63 +102,128 @@
 <div id="results"></div>
 
 <script>
-const CSV_URL = "https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2WQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+const CSV_URL =
+"https://docs.google.com/spreadsheets/d/e/2PACX-1vRn9sbmbzT81t1KJQalXVr1agr9E4WUXBOTKrwMWNGimD9CnbCXD2Z2ZQzpDMZKl0GVQOKI8mELb3Y0/pub?output=csv";
+
+// Hilfsfunktion zum CSV parsen
+function parseCSV(text) {
+    const lines = text.split(/\r?\n/).filter(l => l.trim() !== "");
+    const headers = lines[0].split(",").map(h => h.trim());
+    const rows = lines.slice(1).map(l => {
+        const values = l.split(",");
+        let obj = {};
+        headers.forEach((h, i) => obj[h] = values[i] ? values[i].trim() : "");
+        return obj;
+    });
+    return { headers, rows };
+}
 
 async function searchEntries() {
-    document.getElementById("errorBox").innerText = "";
-    document.getElementById("results").innerHTML = "";
+    const results = document.getElementById("results");
+    const errorBox = document.getElementById("errorBox");
+    errorBox.innerText = "";
+    results.innerHTML = "";
 
     const name = document.getElementById("nameInput").value.trim().toLowerCase();
     if (!name) {
-        document.getElementById("errorBox").innerText = "Bitte Namen eingeben.";
+        errorBox.innerText = "Bitte Namen eingeben.";
         return;
     }
 
-    let res = await fetch(CSV_URL);
-    let text = await res.text();
+    const res = await fetch(CSV_URL);
+    const text = await res.text();
 
-    let rows = text.split(/\r?\n/).map(r => r.split(","));
-    let headers = rows[0].map(h => h.trim());
+    const { headers, rows } = parseCSV(text);
 
-    // 🔥 Monteur-Spalte automatisch finden
-    let monteurColIndex = headers.findIndex(h =>
-        h.toLowerCase().includes("monteur")
-    );
-
-    if (monteurColIndex === -1) {
-        document.getElementById("errorBox").innerText =
-            "Fehler: Keine Monteur-Spalte gefunden!";
+    // Monteur-Spalte finden (egal wie sie genau heißt)
+    const monteurKey = headers.find(h => h.toLowerCase().includes("monteur"));
+    if (!monteurKey) {
+        errorBox.innerText = "Fehler: Monteur-Spalte nicht gefunden.";
         return;
     }
 
-    let data = rows.slice(1);
+    // Projekte-Spalte suchen
+    const projektKey = headers.find(h => h.toLowerCase().includes("projekt"));
 
-    // 🔍 Filter auf passenden Monteur
-    let matches = data.filter(row =>
-        row[monteurColIndex]?.toLowerCase().trim() === name
+    // Datum-Spalte
+    const datumKey = headers.find(h => h.toLowerCase().includes("datum"));
+
+    const matches = rows.filter(r =>
+        r[monteurKey]?.toLowerCase().trim() === name
     );
 
     if (matches.length === 0) {
-        document.getElementById("errorBox").innerText =
-            "Keine Einträge gefunden. Schreib deinen Namen genau wie im Bericht.";
+        errorBox.innerText =
+            "Keine Einträge gefunden. Schreib deinen Nachnamen genau wie im Formular.";
         return;
     }
 
-    document.getElementById("step1").style.display = "none";
+    // Nur das neueste pro Baustelle
+    const latestPerProject = {};
 
-    let output = "<h2>🔧 Deine Baustellen</h2>";
+    matches.forEach(entry => {
+        const proj = entry[projektKey] || "Unbekannt";
+        const dateValue = new Date(entry[datumKey] || "2000-01-01");
 
-    matches.forEach(r => {
-        output += `
-            <div class="card">
-                <div class="title">${r[1] || "Unbekannt"}</div>
-                <div class="subtitle">${r[2] || ""} – ${r[monteurColIndex]}</div>
-                <div><strong>Woche:</strong> ${r[3] || "-"}</div>
-            </div>
-        `;
+        if (!latestPerProject[proj] ||
+            dateValue > new Date(latestPerProject[proj][datumKey])) {
+            latestPerProject[proj] = entry;
+        }
     });
 
-    document.getElementById("results").innerHTML = output;
+    document.getElementById("step1").style.display = "none";
+
+    let out = "<h2>🔧 Deine letzten Fortschritte</h2>";
+
+    for (const proj in latestPerProject) {
+        const e = latestPerProject[proj];
+
+        out += `
+            <div class="card">
+                <div class="title">${proj}</div>
+                <div class="subtitle">${e[datumKey]} – ${e[monteurKey]}</div>
+                <div><strong>Woche:</strong> ${e["Woche / Zeitraum"] || "-"}</div>
+
+                <div class="section-title">Fortschritt:</div>
+        `;
+
+        // Alle Prozent-Spalten auflisten
+        headers.forEach(h => {
+            if (h.includes("(%)")) {
+                out += `<div>${h.replace("(%)", "")}: <strong>${e[h] || "0"}%</strong></div>`;
+            }
+        });
+
+        // Beschreibung
+        if (e["Beschreibung / Details"]) {
+            out += `
+                <div class="section-title">Beschreibung:</div>
+                <div>${e["Beschreibung / Details"]}</div>
+            `;
+        }
+
+        // Probleme
+        if (e["Probleme / Verzögerungen"]) {
+            out += `
+                <div class="section-title">Probleme:</div>
+                <div>${e["Probleme / Verzögerungen"]}</div>
+            `;
+        }
+
+        // Fotos
+        if (e["Fotos"] && e["Fotos"].includes("http")) {
+            const links = e["Fotos"].split(" ").filter(l => l.includes("http"));
+
+            out += `<div class="section-title">Fotos:</div>`;
+            links.forEach(link => {
+                out += `<a href="${link}" target="_blank"><img class="photo-thumb" src="${link}"></a>`;
+            });
+        }
+
+        out += `</div>`;
+    }
+
+    results.innerHTML = out;
 }
 </script>
 
