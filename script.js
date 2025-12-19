@@ -8,30 +8,30 @@ const statusEl = document.getElementById("status");
 monteurSelect.addEventListener("change", loadReports);
 
 async function loadReports() {
-  const selectedMonteur = getSelectedMonteur();
-  reportList.innerHTML = "";
+  const monteur =
+    monteurSelect.value === "_other"
+      ? document.getElementById("otherMonteur").value.trim()
+      : monteurSelect.value;
 
-  if (!selectedMonteur) {
+  if (!monteur) {
     statusEl.textContent = "Bitte Monteur wählen…";
+    reportList.innerHTML = "";
     return;
   }
 
   statusEl.textContent = "Lade Berichte…";
+  reportList.innerHTML = "";
 
   try {
     const res = await fetch(SHEET_CSV_URL);
     const text = await res.text();
 
-    const rows = text.split("\n").map(r => r.split(","));
-    const dataRows = rows.slice(1); // ohne Header
-
-    const matches = dataRows.filter(
-      r => r[3]?.trim() === selectedMonteur
-    );
+    const rows = text.split("\n").slice(1); // Header weg
+    const matches = rows
+      .map(r => r.split(","))
+      .filter(r => r[3]?.trim() === monteur);
 
     statusEl.textContent = `${matches.length} Meldung(en) gefunden`;
-
-    if (matches.length === 0) return;
 
     matches.reverse().forEach(r => {
       const card = document.createElement("div");
@@ -42,26 +42,17 @@ async function loadReports() {
         Datum: ${r[2]}<br>
         Woche: ${r[4]}<br><br>
 
-        <u>Leistungsstand:</u><br>
+        <u>Leistungsfortschritt:</u><br>
         Baustelleneinrichtung: ${r[8] || "-"}<br>
         Zuleitung & Zählerplätze: ${r[9] || "-"}<br>
         Rohr- & Tragsysteme: ${r[10] || "-"}<br>
-        Kabel & Leitungen: ${r[11] || "-"}
+        Kabel & Leitungen: ${r[11] || "-"}<br>
       `;
 
       reportList.appendChild(card);
     });
-
-  } catch (err) {
-    console.error(err);
+  } catch (e) {
     statusEl.textContent = "Fehler beim Laden der Berichte";
+    console.error(e);
   }
-}
-
-function getSelectedMonteur() {
-  const val = monteurSelect.value;
-  if (val === "_other") {
-    return document.getElementById("otherMonteur").value.trim();
-  }
-  return val;
 }
