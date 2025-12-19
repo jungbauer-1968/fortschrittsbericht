@@ -8,80 +8,47 @@ const statusEl = document.getElementById("status");
 monteurSelect.addEventListener("change", loadReports);
 
 async function loadReports() {
-  const monteur = getSelectedMonteur();
-
+  const monteur = monteurSelect.value;
   reportList.innerHTML = "";
-  statusEl.textContent = "Lade Berichte …";
 
   if (!monteur) {
     statusEl.textContent = "Bitte Monteur wählen…";
     return;
   }
 
-  try {
-    const res = await fetch(SHEET_CSV_URL);
-    const text = await res.text();
-    const rows = parseCSV(text);
+  statusEl.textContent = "Lade Meldungen…";
 
-    const headers = rows[0];
-    const dataRows = rows.slice(1);
+  const res = await fetch(SHEET_CSV_URL);
+  const text = await res.text();
+  const rows = text.split("\n").slice(1).map(r => r.split(","));
 
-    const monteurIndex = headers.indexOf("Monteur / Team");
-    const projektIndex = headers.indexOf("Projekt / Baustelle");
-    const datumIndex = headers.indexOf("Datum");
-    const wocheIndex = headers.indexOf("Woche / Zeitraum");
+  const filtered = rows.filter(r => r[3]?.trim() === monteur);
 
-    // Prozent-Spalten
-    const percentColumns = headers
-      .map((h, i) => ({ h, i }))
-      .filter(col => col.h.includes("%"));
+  statusEl.textContent = `${filtered.length} Meldung(en) gefunden`;
 
-    const filtered = dataRows.filter(
-      r => r[monteurIndex]?.trim() === monteur
-    );
+  filtered.reverse().forEach(r => {
+    const card = document.createElement("div");
+    card.className = "report-card";
 
-    statusEl.textContent = `${filtered.length} Meldung(en) gefunden`;
+    card.innerHTML = `
+      <h3>${r[1]}</h3>
+      <p><strong>Datum:</strong> ${r[2]}</p>
+      <p><strong>Woche:</strong> ${r[4]}</p>
 
-    if (filtered.length === 0) {
-      reportList.innerHTML = "<em>Keine Meldungen gefunden.</em>";
-      return;
-    }
+      <details>
+        <summary>Leistungsfortschritt</summary>
+        <ul>
+          <li>Baustelleneinrichtung: ${r[8]}</li>
+          <li>Zuleitung & Zählerplätze: ${r[9]}</li>
+          <li>Rohr- & Tragsysteme: ${r[10]}</li>
+          <li>Kabel & Leitungen: ${r[11]}</li>
+          <li>Schalt- & Steckgeräte: ${r[12]}</li>
+        </ul>
+      </details>
 
-    filtered.reverse().forEach(row => {
-      const div = document.createElement("div");
-      div.className = "report-item";
+      ${r[20] ? `<a href="${r[20]}" target="_blank">📷 Fotos ansehen</a>` : ""}
+    `;
 
-      let percentHtml = "";
-      percentColumns.forEach(col => {
-        if (row[col.i]) {
-          percentHtml += `<div>${col.h}: <b>${row[col.i]}</b></div>`;
-        }
-      });
-
-      div.innerHTML = `
-        <b>${row[projektIndex]}</b><br>
-        Datum: ${row[datumIndex]}<br>
-        Woche: ${row[wocheIndex]}<br>
-        <div class="percents">${percentHtml}</div>
-      `;
-
-      reportList.appendChild(div);
-    });
-  } catch (e) {
-    statusEl.textContent = "Fehler beim Laden der Berichte";
-    console.error(e);
-  }
-}
-
-function getSelectedMonteur() {
-  if (monteurSelect.value === "_other") {
-    return document.getElementById("otherMonteur")?.value.trim();
-  }
-  return monteurSelect.value;
-}
-
-function parseCSV(text) {
-  return text
-    .split("\n")
-    .map(r => r.split(",").map(c => c.replace(/^"|"$/g, "")));
+    reportList.appendChild(card);
+  });
 }
