@@ -1,54 +1,106 @@
+// 🔗 CSV-Link deines Google-Sheets (Formularantworten 1)
 const SHEET_CSV_URL =
   "https://docs.google.com/spreadsheets/d/1ayC-9NWv1k4jFUtnxDQ5P8tenYfVsI5IOIp6lffPP0w/export?format=csv&gid=1954522343";
 
 const monteurSelect = document.getElementById("monteurSelect");
 const reportList = document.getElementById("reportList");
 const statusEl = document.getElementById("status");
+const openFormBtn = document.getElementById("openFormBtn");
+
+// 🔗 Google Formular
+openFormBtn.onclick = () => {
+  window.open(
+    "https://docs.google.com/forms/d/e/1FAIpQLSecipezzn5hUo3X_0378a5JCM0eV-a278T_caoqbbkTKphjJg/viewform",
+    "_blank"
+  );
+};
 
 monteurSelect.addEventListener("change", loadReports);
 
 async function loadReports() {
-  const monteur = monteurSelect.value;
+  const monteur = getSelectedMonteur();
   reportList.innerHTML = "";
+  statusEl.textContent = "Lade Meldungen …";
 
   if (!monteur) {
     statusEl.textContent = "Bitte Monteur wählen…";
     return;
   }
 
-  statusEl.textContent = "Lade Meldungen…";
+  try {
+    const res = await fetch(SHEET_CSV_URL);
+    const text = await res.text();
+    const rows = parseCSV(text);
 
-  const res = await fetch(SHEET_CSV_URL);
-  const text = await res.text();
-  const rows = text.split("\n").slice(1).map(r => r.split(","));
+    const header = rows[0];
+    const data = rows.slice(1);
 
-  const filtered = rows.filter(r => r[3]?.trim() === monteur);
+    const monteurIndex = header.indexOf("Monteur / Team");
 
-  statusEl.textContent = `${filtered.length} Meldung(en) gefunden`;
+    const results = data.filter(
+      (r) => r[monteurIndex]?.trim() === monteur
+    );
 
-  filtered.reverse().forEach(r => {
-    const card = document.createElement("div");
-    card.className = "report-card";
+    statusEl.textContent = `${results.length} Meldung(en) gefunden`;
 
-    card.innerHTML = `
-      <h3>${r[1]}</h3>
-      <p><strong>Datum:</strong> ${r[2]}</p>
-      <p><strong>Woche:</strong> ${r[4]}</p>
+    results.forEach((row) => {
+      const card = document.createElement("div");
+      card.className = "report-card";
 
-      <details>
-        <summary>Leistungsfortschritt</summary>
-        <ul>
-          <li>Baustelleneinrichtung: ${r[8]}</li>
-          <li>Zuleitung & Zählerplätze: ${r[9]}</li>
-          <li>Rohr- & Tragsysteme: ${r[10]}</li>
-          <li>Kabel & Leitungen: ${r[11]}</li>
-          <li>Schalt- & Steckgeräte: ${r[12]}</li>
-        </ul>
-      </details>
+      const projekt = row[1];
+      const datum = row[2];
+      const woche = row[4];
 
-      ${r[20] ? `<a href="${r[20]}" target="_blank">📷 Fotos ansehen</a>` : ""}
-    `;
+      let html = `
+        <strong>${projekt}</strong><br>
+        Datum: ${datum}<br>
+        Woche: ${woche}<br>
+      `;
 
-    reportList.appendChild(card);
-  });
+      // 🔢 Prozentfelder (ab Spalte I)
+      html += `<div class="percent-block"><strong>Leistungsfortschritt:</strong><br>`;
+      for (let i = 8; i < row.length; i++) {
+        if (header[i] && row[i]) {
+          html += `${header[i]}: ${row[i]}<br>`;
+        }
+      }
+      html += `</div>`;
+
+      // 📸 Foto-Links erkennen
+      html += `<div class="photo-block"><strong>Fotos:</strong><br>`;
+      row.forEach((cell) => {
+        if (cell && cell.startsWith("http")) {
+          html += `<a href="${cell}" target="_blank">📷 Foto öffnen</a><br>`;
+        }
+      });
+      html += `</div>`;
+
+      card.innerHTML = html;
+      reportList.appendChild(card);
+    });
+
+  } catch (err) {
+    console.error(err);
+    statusEl.textContent = "Fehler beim Laden der Berichte";
+  }
+}
+
+// 👤 Monteur aus Dropdown / Freitext
+function getSelectedMonteur() {
+  const val = monteurSelect.value;
+  if (val === "_other") {
+    return document.getElementById("otherMonteur").value.trim();
+  }
+  return val;
+}
+
+// 🧠 CSV Parser
+function parseCSV(text) {
+  return text
+    .split("\n")
+    .map((row) =>
+      row
+        .split(/,(?=(?:(?:[^"]*"){2})*[^"]*$)/)
+        .map((c) => c.replace(/^"|"$/g, "").trim())
+    );
 }
